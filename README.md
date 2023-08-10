@@ -1,6 +1,8 @@
 # qbe_demo
 qbe_demo
 
+**INFRA**
+
 This demo create a kubernetes cluster in gcp using terraform.
 It also has kubernetes manifests which create application which returns "hello World"
 
@@ -20,6 +22,8 @@ The next step is tp run **terraform plan**, which create a plan of resources tha
 Once you satisfied with the plan you can run **terraform apply** and this will apply the resource into the Cloud and setup our Kubernetes Cluster
 
 To clean up and remove our resource we need to run **terraform destroy**
+
+**APPLICATION**
 
 There is a helm folder also located in the infra folder which is used to deploy the helm chart for the certificate manager which is used to deploy that that we can 
 use TLS/SSL certificate in the kubernetes cluster to sign requests 
