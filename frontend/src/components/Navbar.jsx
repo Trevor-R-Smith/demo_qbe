@@ -25,11 +25,11 @@ export default function Navbar() {
                     data-testid="brand-link"
                     className="flex items-center gap-2"
                 >
-                    <span className="grid h-7 w-7 place-items-center border border-white/15 bg-ps-blue/15">
-                        <span className="block h-2 w-2 rotate-45 bg-ps-blue" />
+                    <span className="grid h-8 w-8 place-items-center border border-ps-red bg-ps-red">
+                        <span className="block h-2.5 w-2.5 rotate-45 bg-white" />
                     </span>
-                    <span className="font-heading text-2xl font-black uppercase tracking-tight text-white">
-                        Play<span className="text-ps-blue">Sharp</span>
+                    <span className="font-display text-2xl font-black uppercase tracking-tight text-white">
+                        Play<span className="text-ps-red">Sharp</span>
                     </span>
                 </Link>
 

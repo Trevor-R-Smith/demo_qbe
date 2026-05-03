@@ -23,19 +23,19 @@ body {
     background-image:
         radial-gradient(
             circle at 18% 12%,
-            rgba(0, 85, 255, 0.08) 0%,
+            rgba(220, 30, 40, 0.1) 0%,
             transparent 38%
         ),
         radial-gradient(
             circle at 82% 88%,
-            rgba(35, 136, 60, 0.06) 0%,
+            rgba(255, 255, 255, 0.03) 0%,
             transparent 42%
         );
     background-attachment: fixed;
 }
 
 ::selection {
-    background: #0055ff;
+    background: #dc1e28;
     color: #ffffff;
 }
 
@@ -47,11 +47,11 @@ body {
     background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
-    background: #1a1d24;
+    background: #1c1c1c;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #23883c;
+    background: #dc1e28;
 }
 
 @layer base {
@@ -62,41 +62,41 @@ body {
         --card-foreground: 0 0% 100%;
         --popover: 220 13% 9%;
         --popover-foreground: 0 0% 100%;
-        --primary: 220 100% 50%;
+        --primary: 356 75% 51%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 220 13% 14%;
+        --secondary: 0 0% 10%;
         --secondary-foreground: 0 0% 100%;
-        --muted: 220 13% 14%;
-        --muted-foreground: 220 9% 60%;
+        --muted: 0 0% 10%;
+        --muted-foreground: 0 0% 65%;
         --accent: 137 60% 36%;
         --accent-foreground: 0 0% 100%;
         --destructive: 354 76% 56%;
         --destructive-foreground: 0 0% 100%;
         --border: 0 0% 100% / 0.1;
-        --input: 220 13% 14%;
-        --ring: 220 100% 50%;
-        --radius: 0.25rem;
+        --input: 0 0% 10%;
+        --ring: 356 75% 51%;
+        --radius: 0.125rem;
     }
     .dark {
         --background: 0 0% 4%;
         --foreground: 0 0% 100%;
-        --card: 220 13% 9%;
+        --card: 0 0% 8%;
         --card-foreground: 0 0% 100%;
-        --popover: 220 13% 9%;
+        --popover: 0 0% 8%;
         --popover-foreground: 0 0% 100%;
-        --primary: 220 100% 50%;
+        --primary: 356 75% 51%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 220 13% 14%;
+        --secondary: 0 0% 10%;
         --secondary-foreground: 0 0% 100%;
-        --muted: 220 13% 14%;
-        --muted-foreground: 220 9% 60%;
+        --muted: 0 0% 10%;
+        --muted-foreground: 0 0% 65%;
         --accent: 137 60% 36%;
         --accent-foreground: 0 0% 100%;
         --destructive: 354 76% 56%;
         --destructive-foreground: 0 0% 100%;
-        --border: 220 13% 18%;
-        --input: 220 13% 14%;
-        --ring: 220 100% 50%;
+        --border: 0 0% 14%;
+        --input: 0 0% 10%;
+        --ring: 356 75% 51%;
     }
 }
 
@@ -111,8 +111,8 @@ body {
     h2,
     h3,
     h4 {
-        font-family: "Barlow Condensed", sans-serif;
-        letter-spacing: -0.01em;
+        font-family: "Sofia Sans Extra Condensed", "Barlow Condensed", sans-serif;
+        letter-spacing: -0.02em;
     }
 }
 
@@ -135,46 +135,62 @@ body {
         background-size: 56px 56px;
     }
     .ps-card {
-        background: #121418;
+        background: #141414;
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 4px;
+        border-radius: 2px;
         transition: border-color 0.2s ease;
     }
     .ps-card:hover {
-        border-color: rgba(255, 255, 255, 0.25);
+        border-color: rgba(220, 30, 40, 0.45);
     }
     .ps-btn-primary {
-        background: #0055ff;
+        background: #dc1e28;
         color: #ffffff;
-        border: 1px solid #0055ff;
+        border: 1px solid #dc1e28;
         padding: 14px 28px;
-        font-family: "Barlow Condensed", sans-serif;
-        font-weight: 700;
+        font-family: "Sofia Sans Extra Condensed", "Barlow Condensed", sans-serif;
+        font-weight: 800;
         font-size: 14px;
         text-transform: uppercase;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.18em;
         transition: background 0.18s ease;
         cursor: pointer;
+        position: relative;
     }
     .ps-btn-primary:hover {
-        background: #3377ff;
+        background: #f5333d;
+    }
+    .ps-btn-primary::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #ffffff;
+        transform: scaleY(0.5);
+        transform-origin: center;
+        transition: transform 0.2s ease;
+    }
+    .ps-btn-primary:hover::before {
+        transform: scaleY(1);
     }
     .ps-btn-secondary {
         background: transparent;
         color: #ffffff;
         border: 1px solid rgba(255, 255, 255, 0.2);
         padding: 14px 28px;
-        font-family: "Barlow Condensed", sans-serif;
-        font-weight: 700;
+        font-family: "Sofia Sans Extra Condensed", "Barlow Condensed", sans-serif;
+        font-weight: 800;
         font-size: 14px;
         text-transform: uppercase;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.18em;
         transition: all 0.18s ease;
         cursor: pointer;
     }
     .ps-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.7);
+        background: rgba(220, 30, 40, 0.08);
+        border-color: #dc1e28;
     }
     .ps-input {
         background: transparent;
@@ -190,17 +206,41 @@ body {
         transition: border-color 0.18s ease;
     }
     .ps-input:focus {
-        border-bottom-color: #0055ff;
+        border-bottom-color: #dc1e28;
     }
     .ps-input::placeholder {
         color: rgba(255, 255, 255, 0.35);
     }
     .ps-section-title {
-        font-family: "Barlow Condensed", sans-serif;
-        font-weight: 800;
+        font-family: "Sofia Sans Extra Condensed", "Barlow Condensed", sans-serif;
+        font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: -0.01em;
-        line-height: 0.95;
+        letter-spacing: -0.02em;
+        line-height: 0.9;
+    }
+    .ps-slash {
+        position: relative;
+        display: inline-block;
+        padding-left: 18px;
+    }
+    .ps-slash::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%) skewX(-18deg);
+        width: 6px;
+        height: 70%;
+        background: #dc1e28;
+    }
+    .ps-diagonal-border {
+        clip-path: polygon(
+            0 0,
+            100% 0,
+            100% calc(100% - 14px),
+            calc(100% - 14px) 100%,
+            0 100%
+        );
     }
     .ps-trace-border {
         position: relative;
@@ -209,14 +249,14 @@ body {
         content: "";
         position: absolute;
         inset: -1px;
-        border-radius: 4px;
+        border-radius: 2px;
         padding: 1px;
         background: linear-gradient(
             120deg,
-            #0055ff 0%,
+            #dc1e28 0%,
             #23883c 35%,
-            #0055ff 65%,
-            #3377ff 100%
+            #dc1e28 65%,
+            #f5333d 100%
         );
         background-size: 200% 200%;
         -webkit-mask:

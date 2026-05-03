@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 
 const HERO_BG =
-    "https://static.prod-images.emergentagent.com/jobs/11e47a01-0d53-49e0-ad4f-66f4f563ae1a/images/b5cce675b74563cbf47387876ca99736f077927f8020fd618691164647e38b8a.png";
+    "https://images.unsplash.com/photo-1772707681004-ebbce15554d4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwyfHxmb290YmFsbCUyMHRyYWluaW5nJTIwc3RhZGl1bSUyMG5pZ2h0fGVufDB8fHx8MTc3NzgxMzk3MHww&ixlib=rb-4.1.0&q=85";
 
 export default function Hero() {
     return (
@@ -11,53 +11,68 @@ export default function Hero() {
             data-testid="hero-section"
             className="relative overflow-hidden border-b border-white/10"
         >
-            {/* Background pitch texture */}
+            {/* Background stadium photo */}
             <div
-                className="absolute inset-0 opacity-30"
+                className="absolute inset-0"
                 style={{
                     backgroundImage: `url(${HERO_BG})`,
                     backgroundSize: "cover",
-                    backgroundPosition: "center",
+                    backgroundPosition: "center 30%",
+                    filter: "grayscale(0.35) contrast(1.1)",
                 }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-ps-bg via-ps-bg/85 to-ps-bg/40" />
-            <div className="absolute inset-0 ps-grid opacity-40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-ps-bg via-ps-bg/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ps-bg via-transparent to-ps-bg/40" />
+
+            {/* Red diagonal accent bar */}
+            <div className="absolute right-0 top-0 hidden h-full w-2 bg-ps-red lg:block" />
+            <div className="absolute right-2 top-24 hidden h-16 w-[2px] rotate-12 bg-ps-red lg:block" />
 
             <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-20 md:py-28 lg:grid-cols-12">
                 <div className="lg:col-span-8">
+                    {/* Matchday tag */}
                     <motion.div
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="inline-flex items-center gap-2 border border-white/10 bg-ps-surface px-3 py-1.5"
+                        className="flex items-center gap-3"
                     >
-                        <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-ps-turf" />
-                        <span className="ps-label text-white/70">
-                            Cognitive Football Training · Built for Clubs &amp; Schools
+                        <span className="block h-[2px] w-10 bg-ps-red" />
+                        <span className="ps-label text-ps-red">
+                            Cognitive Football Training
+                        </span>
+                        <span className="block h-[2px] w-10 bg-white/20" />
+                        <span className="ps-label text-white/55">
+                            Est. 2026 · UK
                         </span>
                     </motion.div>
 
+                    {/* Editorial-style headline */}
                     <motion.h1
                         initial={{ opacity: 0, y: 24 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.05 }}
-                        className="ps-section-title mt-6 text-5xl text-white sm:text-6xl md:text-7xl lg:text-[88px]"
+                        className="ps-section-title mt-6 text-[56px] leading-[0.88] text-white sm:text-6xl md:text-7xl lg:text-[108px]"
                     >
-                        THINK QUICKER.
+                        Think
+                        <span className="mx-3 inline-block rotate-[-2deg] bg-ps-red px-4 text-white">
+                            quicker.
+                        </span>
                         <br />
-                        <span className="text-ps-blue">MOVE SMARTER.</span>
+                        Move&nbsp;
+                        <span className="italic text-ps-red">smarter.</span>
                     </motion.h1>
 
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.15 }}
-                        className="mt-6 max-w-2xl font-body text-base leading-relaxed text-white/65 md:text-lg"
+                        className="mt-8 max-w-2xl font-body text-base leading-relaxed text-white/70 md:text-lg"
                     >
-                        PlaySharp is the cognitive training platform for modern
-                        football. Short, measurable drills that sharpen reaction
-                        speed, scanning, decision-making, and football
-                        intelligence — all in the browser.
+                        The browser-based cognitive training platform for modern
+                        football clubs, academies, and schools. Short, measurable
+                        drills that sharpen reaction speed, scanning, and decision
+                        making — straight from the warm-up room.
                     </motion.p>
 
                     <motion.div
@@ -87,22 +102,22 @@ export default function Hero() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.7, delay: 0.4 }}
-                        className="mt-12 grid max-w-2xl grid-cols-3 gap-6 border-t border-white/10 pt-6"
+                        className="mt-14 flex max-w-2xl items-stretch gap-0 border-t border-white/10 pt-6"
                     >
-                        <div>
-                            <div className="ps-metric text-2xl md:text-4xl">
-                                250<span className="text-ps-blue">ms</span>
+                        <div className="flex-1 border-r border-white/10 pr-6">
+                            <div className="ps-metric text-2xl text-white md:text-4xl">
+                                250<span className="text-ps-red">ms</span>
                             </div>
                             <div className="ps-label mt-1">Avg Reaction Goal</div>
                         </div>
-                        <div>
-                            <div className="ps-metric text-2xl md:text-4xl">
+                        <div className="flex-1 border-r border-white/10 px-6">
+                            <div className="ps-metric text-2xl text-white md:text-4xl">
                                 10<span className="text-white/30">/10</span>
                             </div>
                             <div className="ps-label mt-1">Drill Rounds</div>
                         </div>
-                        <div>
-                            <div className="ps-metric text-2xl md:text-4xl">
+                        <div className="flex-1 pl-6">
+                            <div className="ps-metric text-2xl text-white md:text-4xl">
                                 &lt;60<span className="text-ps-turf">s</span>
                             </div>
                             <div className="ps-label mt-1">To Understand</div>
@@ -110,53 +125,84 @@ export default function Hero() {
                     </motion.div>
                 </div>
 
-                {/* Right side mock HUD */}
+                {/* Right side match-day card */}
                 <motion.div
                     initial={{ opacity: 0, x: 24 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
                     className="hidden lg:col-span-4 lg:block"
                 >
-                    <div className="ps-card relative h-full overflow-hidden p-6">
-                        <div className="flex items-center justify-between">
-                            <span className="ps-label">LIVE SESSION</span>
-                            <span className="font-mono text-xs text-ps-turf">● REC</span>
+                    <div className="relative h-full bg-ps-ink text-white shadow-[0_0_60px_rgba(220,30,40,0.15)]">
+                        {/* Red top strip */}
+                        <div className="flex items-center justify-between bg-ps-red px-5 py-3">
+                            <span className="font-display text-xs font-bold uppercase tracking-[0.24em] text-white">
+                                Live Session
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-white">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                                REC
+                            </span>
                         </div>
-                        <div className="mt-6">
-                            <div className="ps-label">PLAYER</div>
-                            <div className="mt-1 font-heading text-2xl font-bold text-white">
-                                MARCUS J. — #9
+
+                        <div className="px-6 pb-6 pt-6">
+                            <div className="flex items-baseline justify-between">
+                                <div>
+                                    <div className="ps-label text-white/45">Player</div>
+                                    <div className="mt-1 font-display text-3xl font-black uppercase leading-none text-white">
+                                        Marcus J.
+                                    </div>
+                                    <div className="mt-1 text-xs tracking-wider text-white/50">
+                                        South London FC · Age 17
+                                    </div>
+                                </div>
+                                <div className="font-display text-5xl font-black text-ps-red">
+                                    #9
+                                </div>
                             </div>
-                            <div className="text-xs text-white/45">South London FC</div>
+
+                            <div className="mt-6 grid grid-cols-2 gap-px border border-white/8 bg-white/10">
+                                <div className="bg-ps-ink p-4">
+                                    <div className="ps-label">Reaction</div>
+                                    <div className="ps-metric mt-2 text-2xl text-ps-red">
+                                        238ms
+                                    </div>
+                                </div>
+                                <div className="bg-ps-ink p-4">
+                                    <div className="ps-label">Decisions</div>
+                                    <div className="ps-metric mt-2 text-2xl text-white">
+                                        87%
+                                    </div>
+                                </div>
+                                <div className="bg-ps-ink p-4">
+                                    <div className="ps-label">Scan Rate</div>
+                                    <div className="ps-metric mt-2 text-2xl text-ps-turf">
+                                        4.2/s
+                                    </div>
+                                </div>
+                                <div className="bg-ps-ink p-4">
+                                    <div className="ps-label">Football IQ</div>
+                                    <div className="ps-metric mt-2 text-2xl text-white">
+                                        912
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-5">
+                                <div className="flex items-center justify-between text-[10px] uppercase tracking-widest">
+                                    <span className="text-white/50">Session 4 · Week 12</span>
+                                    <span className="flex items-center gap-1 text-ps-turf">
+                                        <Trophy size={10} /> +18 IQ
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex h-1.5 overflow-hidden bg-white/8">
+                                    <div className="h-full w-[78%] bg-ps-red" />
+                                    <div className="h-full w-[10%] bg-ps-turf" />
+                                </div>
+                            </div>
                         </div>
-                        <div className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-5">
-                            <div>
-                                <div className="ps-label">REACTION</div>
-                                <div className="ps-metric text-2xl text-ps-blue">238ms</div>
-                            </div>
-                            <div>
-                                <div className="ps-label">DECISIONS</div>
-                                <div className="ps-metric text-2xl text-white">87%</div>
-                            </div>
-                            <div>
-                                <div className="ps-label">SCAN RATE</div>
-                                <div className="ps-metric text-2xl text-ps-turf">4.2/s</div>
-                            </div>
-                            <div>
-                                <div className="ps-label">FOOTBALL IQ</div>
-                                <div className="ps-metric text-2xl text-white">912</div>
-                            </div>
-                        </div>
-                        <div className="mt-6 border-t border-white/10 pt-4">
-                            <div className="flex items-center justify-between text-xs text-white/45">
-                                <span className="font-mono">SESSION 4 · WK 12</span>
-                                <span className="font-mono text-ps-turf">+18 IQ</span>
-                            </div>
-                            <div className="mt-2 flex h-2 overflow-hidden bg-white/5">
-                                <div className="h-full w-[78%] bg-ps-blue" />
-                                <div className="h-full w-[10%] bg-ps-turf" />
-                            </div>
-                        </div>
+
+                        {/* Diagonal red bottom corner */}
+                        <div className="absolute bottom-0 right-0 h-8 w-8 bg-ps-red" style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }} />
                     </div>
                 </motion.div>
             </div>

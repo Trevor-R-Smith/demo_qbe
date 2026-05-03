@@ -10,7 +10,7 @@ export default function ContactCTA() {
             <div className="relative mx-auto max-w-7xl px-6 py-24">
                 <div className="ps-card relative overflow-hidden p-10 md:p-16">
                     <div className="ps-grid absolute inset-0 opacity-30" />
-                    <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-ps-blue/15 to-transparent" />
+                    <div className="absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-ps-red/15 to-transparent" />
                     <div className="relative z-10 flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
                         <div className="max-w-2xl">
                             <p className="ps-label text-ps-turf">For Clubs &amp; Schools</p>

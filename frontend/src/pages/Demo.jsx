@@ -14,23 +14,24 @@ const STEPS = [
     { key: "leaderboard", label: "Leaderboard" },
 ];
 
-const CLUBS = ["South London FC", "Croydon Juniors", "Elite Academy"];
-
 export default function Demo() {
     const [step, setStep] = useState("intro");
     const [name, setName] = useState("");
-    const [club, setClub] = useState(CLUBS[0]);
+    const [club, setClub] = useState("");
+    const [age, setAge] = useState("");
     const [reactionResult, setReactionResult] = useState(null);
     const [decisionResult, setDecisionResult] = useState(null);
 
     const stepIdx = STEPS.findIndex((s) => s.key === step);
 
     const submit = async (gameType, payload) => {
-        if (!name.trim()) return;
+        if (!name.trim() || !club.trim()) return;
         try {
+            const parsedAge = age ? Number(age) : null;
             await submitScore({
                 name: name.trim(),
-                club,
+                club: club.trim(),
+                ...(parsedAge && parsedAge >= 6 && parsedAge <= 99 ? { age: parsedAge } : {}),
                 gameType,
                 score: payload.score,
                 reactionTime: payload.reactionTime ?? null,
@@ -72,7 +73,7 @@ export default function Demo() {
                                         className={[
                                             "grid h-7 w-7 place-items-center border font-mono text-xs",
                                             active
-                                                ? "border-ps-blue bg-ps-blue text-white"
+                                                ? "border-ps-red bg-ps-red text-white"
                                                 : done
                                                     ? "border-ps-turf bg-ps-turf/10 text-ps-turf"
                                                     : "border-white/15 bg-ps-surface text-white/40",
@@ -118,14 +119,14 @@ export default function Demo() {
 
                             <div className="mt-10 grid grid-cols-3 gap-4">
                                 <div className="ps-card p-4">
-                                    <Activity size={16} className="text-ps-blue" />
+                                    <Activity size={16} className="text-ps-red" />
                                     <p className="ps-label mt-3">Step 1</p>
                                     <p className="mt-1 font-heading text-base font-bold uppercase text-white">
                                         Reaction
                                     </p>
                                 </div>
                                 <div className="ps-card p-4">
-                                    <Brain size={16} className="text-ps-blue" />
+                                    <Brain size={16} className="text-ps-red" />
                                     <p className="ps-label mt-3">Step 2</p>
                                     <p className="mt-1 font-heading text-base font-bold uppercase text-white">
                                         Decision
@@ -144,42 +145,49 @@ export default function Demo() {
                         <div className="lg:col-span-5">
                             <div className="ps-card p-8">
                                 <p className="ps-label">Player setup</p>
-                                <div className="mt-5">
-                                    <label className="ps-label" htmlFor="demo-name">Player name</label>
-                                    <input
-                                        id="demo-name"
-                                        data-testid="demo-input-name"
-                                        className="ps-input mt-2"
-                                        type="text"
-                                        placeholder="e.g. Marcus J."
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                    />
+                                <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                    <div className="sm:col-span-2">
+                                        <label className="ps-label" htmlFor="demo-name">Player name</label>
+                                        <input
+                                            id="demo-name"
+                                            data-testid="demo-input-name"
+                                            className="ps-input mt-2"
+                                            type="text"
+                                            placeholder="e.g. Marcus J."
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <label className="ps-label" htmlFor="demo-age">Age</label>
+                                        <input
+                                            id="demo-age"
+                                            data-testid="demo-input-age"
+                                            className="ps-input mt-2"
+                                            type="number"
+                                            min="6"
+                                            max="99"
+                                            placeholder="e.g. 17"
+                                            value={age}
+                                            onChange={(e) => setAge(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                                 <div className="mt-6">
-                                    <label className="ps-label">Club</label>
-                                    <div className="mt-2 grid grid-cols-1 gap-2">
-                                        {CLUBS.map((c) => (
-                                            <button
-                                                type="button"
-                                                key={c}
-                                                data-testid={`demo-club-${c.replace(/\s/g, "-")}`}
-                                                onClick={() => setClub(c)}
-                                                className={[
-                                                    "border px-4 py-3 text-left font-heading text-sm font-semibold uppercase tracking-[0.14em] transition-colors",
-                                                    club === c
-                                                        ? "border-ps-blue bg-ps-blue/10 text-white"
-                                                        : "border-white/10 bg-ps-surface text-white/65 hover:border-white/30",
-                                                ].join(" ")}
-                                            >
-                                                {c}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <label className="ps-label" htmlFor="demo-club">Club / School</label>
+                                    <input
+                                        id="demo-club"
+                                        data-testid="demo-input-club"
+                                        className="ps-input mt-2"
+                                        type="text"
+                                        placeholder="e.g. South London FC"
+                                        value={club}
+                                        onChange={(e) => setClub(e.target.value)}
+                                    />
                                 </div>
                                 <button
                                     data-testid="demo-start-button"
-                                    disabled={!name.trim()}
+                                    disabled={!name.trim() || !club.trim()}
                                     onClick={() => setStep("reaction")}
                                     className="ps-btn-primary mt-8 inline-flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
@@ -261,7 +269,7 @@ export default function Demo() {
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div className="ps-card p-6">
                                 <p className="ps-label">Reaction</p>
-                                <div className="ps-metric mt-3 text-ps-blue">
+                                <div className="ps-metric mt-3 text-ps-red">
                                     {reactionResult
                                         ? `${Math.round(reactionResult.reactionTime)}ms`
                                         : "—"}

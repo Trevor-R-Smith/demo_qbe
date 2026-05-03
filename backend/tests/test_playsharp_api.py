@@ -1,11 +1,10 @@
-"""PlaySharp backend API regression tests."""
+"""PlaySharp backend API regression tests (V1.1)."""
 import os
 import pytest
 import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
-    # Fallback to frontend .env if not exported
     from pathlib import Path
     env = Path("/app/frontend/.env").read_text()
     for line in env.splitlines():
@@ -13,7 +12,7 @@ if not BASE_URL:
             BASE_URL = line.split("=", 1)[1].strip().strip('"').rstrip("/")
 
 API = f"{BASE_URL}/api"
-VALID_CLUBS = ["South London FC", "Croydon Juniors", "Elite Academy"]
+SEEDED_CLUBS = {"South London FC", "Croydon Juniors", "Elite Academy"}
 
 
 @pytest.fixture(scope="module")
@@ -33,11 +32,20 @@ class TestRoot:
         assert "motto" in data and "Think quicker" in data["motto"]
         assert "version" in data
 
-    def test_clubs(self, session):
+    def test_clubs_includes_seeded(self, session):
         r = session.get(f"{API}/clubs")
         assert r.status_code == 200
-        names = [c["name"] for c in r.json()]
-        assert sorted(names) == sorted(VALID_CLUBS)
+        body = r.json()
+        assert isinstance(body, list)
+        names = {c["name"] for c in body}
+        # All entries must have 'name' string
+        for c in body:
+            assert "name" in c and isinstance(c["name"], str)
+        # Seeded clubs should be present (dynamic list but seed persists)
+        assert SEEDED_CLUBS.issubset(names), f"Missing seeded clubs. Got: {names}"
+        # Sorted alphabetically
+        sorted_names = sorted(body, key=lambda c: c["name"])
+        assert body == sorted_names, "Clubs should be sorted alphabetically"
 
 
 # --- Contact ---------------------------------------------------------------
@@ -65,7 +73,6 @@ class TestContact:
         assert r.status_code == 422
 
     def test_contact_persisted_in_list(self, session):
-        # POST a unique contact then GET list and look for it
         payload = {
             "name": "TEST_PersistCheck",
             "email": "persist_check@example.com",
@@ -79,17 +86,16 @@ class TestContact:
         assert r2.status_code == 200
         ids = [c["id"] for c in r2.json()]
         assert contact_id in ids
-        # No ObjectId leakage
         for c in r2.json():
             assert "_id" not in c
 
 
-# --- Score -----------------------------------------------------------------
-class TestScore:
-    def test_score_create_reaction(self, session):
+# --- Score (V1.1) ----------------------------------------------------------
+class TestScoreV11:
+    def test_score_accepts_arbitrary_club(self, session):
         payload = {
-            "name": "TEST_Reactor",
-            "club": "South London FC",
+            "name": "TEST_ArbitraryClub",
+            "club": "TEST_Some Random Club FC",
             "gameType": "reaction",
             "score": 850,
             "reactionTime": 280.5,
@@ -97,28 +103,82 @@ class TestScore:
         r = session.post(f"{API}/score", json=payload)
         assert r.status_code == 201, r.text
         data = r.json()
-        assert data["gameType"] == "reaction"
+        assert data["club"] == "TEST_Some Random Club FC"
         assert data["score"] == 850
-        assert data["reactionTime"] == 280.5
         assert "_id" not in data
 
-    def test_score_create_decision(self, session):
+    def test_score_accepts_club_with_apostrophe(self, session):
         payload = {
-            "name": "TEST_Decider",
-            "club": "Elite Academy",
+            "name": "TEST_Apostrophe",
+            "club": "TEST_St. Mary's Academy",
             "gameType": "decision",
-            "score": 92,
+            "score": 75,
         }
         r = session.post(f"{API}/score", json=payload)
-        assert r.status_code == 201
-        assert r.json()["gameType"] == "decision"
+        assert r.status_code == 201, r.text
+        assert r.json()["club"] == "TEST_St. Mary's Academy"
 
-    def test_score_unknown_club_400(self, session):
+    def test_score_empty_club_returns_400(self, session):
         r = session.post(f"{API}/score", json={
-            "name": "TEST_X", "club": "Unknown Club", "gameType": "reaction",
-            "score": 500, "reactionTime": 300,
+            "name": "TEST_EmptyClub", "club": "",
+            "gameType": "reaction", "score": 500, "reactionTime": 300,
         })
         assert r.status_code == 400
+        assert "club" in r.text.lower()
+
+    def test_score_whitespace_club_returns_400(self, session):
+        r = session.post(f"{API}/score", json={
+            "name": "TEST_WS", "club": "   ",
+            "gameType": "reaction", "score": 500, "reactionTime": 300,
+        })
+        assert r.status_code == 400
+
+    def test_score_with_valid_age_stored(self, session):
+        payload = {
+            "name": "TEST_WithAge",
+            "club": "TEST_AgeClub",
+            "age": 17,
+            "gameType": "reaction",
+            "score": 700,
+            "reactionTime": 320.0,
+        }
+        r = session.post(f"{API}/score", json=payload)
+        assert r.status_code == 201, r.text
+        assert r.json()["age"] == 17
+
+        # Verify via leaderboard persistence
+        lb = session.get(f"{API}/leaderboard/reaction",
+                         params={"club": "TEST_AgeClub", "limit": 10})
+        assert lb.status_code == 200
+        rows = lb.json()["results"]
+        ages = [row.get("age") for row in rows]
+        assert 17 in ages
+
+    def test_score_without_age_still_works(self, session):
+        payload = {
+            "name": "TEST_NoAge",
+            "club": "TEST_NoAgeClub",
+            "gameType": "decision",
+            "score": 80,
+        }
+        r = session.post(f"{API}/score", json=payload)
+        assert r.status_code == 201, r.text
+        data = r.json()
+        assert data.get("age") is None
+
+    def test_score_age_too_low_returns_422(self, session):
+        r = session.post(f"{API}/score", json={
+            "name": "TEST_LowAge", "club": "TEST_LowAgeClub", "age": 5,
+            "gameType": "reaction", "score": 500, "reactionTime": 300,
+        })
+        assert r.status_code == 422
+
+    def test_score_age_too_high_returns_422(self, session):
+        r = session.post(f"{API}/score", json={
+            "name": "TEST_HighAge", "club": "TEST_HighAgeClub", "age": 100,
+            "gameType": "reaction", "score": 500, "reactionTime": 300,
+        })
+        assert r.status_code == 422
 
     def test_score_unknown_game_type_422(self, session):
         r = session.post(f"{API}/score", json={
@@ -126,6 +186,18 @@ class TestScore:
             "gameType": "snooker", "score": 100,
         })
         assert r.status_code == 422
+
+    def test_new_club_appears_in_clubs_list(self, session):
+        unique = "TEST_UniqueClub_Playsharp_V11"
+        r = session.post(f"{API}/score", json={
+            "name": "TEST_New", "club": unique,
+            "gameType": "decision", "score": 90,
+        })
+        assert r.status_code == 201
+        r2 = session.get(f"{API}/clubs")
+        assert r2.status_code == 200
+        names = {c["name"] for c in r2.json()}
+        assert unique in names, f"New club missing from /api/clubs. Got: {names}"
 
 
 # --- Leaderboard -----------------------------------------------------------
@@ -150,18 +222,33 @@ class TestLeaderboard:
         scores = [x["score"] for x in results]
         assert scores == sorted(scores, reverse=True)
 
-    def test_leaderboard_club_filter(self, session):
-        r = session.get(f"{API}/leaderboard/reaction", params={"club": "South London FC"})
+    def test_leaderboard_seeded_club_filter(self, session):
+        r = session.get(f"{API}/leaderboard/reaction",
+                        params={"club": "South London FC"})
         assert r.status_code == 200
         for row in r.json()["results"]:
             assert row["club"] == "South London FC"
+
+    def test_leaderboard_arbitrary_club_filter(self, session):
+        # First create a score for a new club, then filter
+        club = "TEST_FilterClub_XYZ"
+        session.post(f"{API}/score", json={
+            "name": "TEST_FilterUser", "club": club,
+            "gameType": "reaction", "score": 750, "reactionTime": 300,
+        })
+        r = session.get(f"{API}/leaderboard/reaction",
+                        params={"club": club})
+        assert r.status_code == 200
+        results = r.json()["results"]
+        assert len(results) >= 1
+        for row in results:
+            assert row["club"] == club
 
     def test_leaderboard_weekly_period(self, session):
         r = session.get(f"{API}/leaderboard/reaction", params={"period": "weekly"})
         assert r.status_code == 200
         data = r.json()
         assert data["period"] == "weekly"
-        # Just ensure response is valid; seeded data spans 0-14 days so may have results
         assert isinstance(data["results"], list)
 
     def test_leaderboard_unknown_game_type(self, session):
@@ -169,7 +256,6 @@ class TestLeaderboard:
         assert r.status_code == 400
 
     def test_seed_data_present(self, session):
-        # Aggregate count from all clubs / unfiltered
         r1 = session.get(f"{API}/leaderboard/reaction", params={"limit": 100})
         r2 = session.get(f"{API}/leaderboard/decision", params={"limit": 100})
         total = len(r1.json()["results"]) + len(r2.json()["results"])

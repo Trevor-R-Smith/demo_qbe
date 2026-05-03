@@ -11,7 +11,7 @@ const BASIC = {
         "Scanning ability training",
         "Decision-making under pressure",
         "Football intelligence scoring",
-        "Global &amp; club leaderboard access",
+        "Global & club leaderboard access",
     ],
     cta: "Start Free Demo",
     href: "/demo",
@@ -21,7 +21,7 @@ const ADVANCED = {
     name: "Advanced",
     price: "Contact",
     period: "for price",
-    tagline: "Squad-wide cognitive performance for clubs &amp; academies.",
+    tagline: "Squad-wide cognitive performance for clubs & academies.",
     features: [
         "Everything in Basic",
         "Expanded drill library (more games)",
@@ -130,7 +130,7 @@ export default function PricingCards({ compact = false }) {
                             <span>
                                 <strong className="text-ps-turf">AI Coaching</strong>
                                 <span className="ml-1 text-white/55">
-                                    — personalised recommendations &amp; adaptive
+                                    — personalised recommendations & adaptive
                                     difficulty (coming soon)
                                 </span>
                             </span>

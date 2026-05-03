@@ -59,8 +59,8 @@ export default function Contact() {
 
                             <div className="mt-10 grid gap-4">
                                 <div className="ps-card flex items-start gap-4 p-5">
-                                    <div className="grid h-9 w-9 place-items-center border border-white/10 bg-ps-blue/10">
-                                        <Mail size={15} className="text-ps-blue" />
+                                    <div className="grid h-9 w-9 place-items-center border border-white/10 bg-ps-red/10">
+                                        <Mail size={15} className="text-ps-red" />
                                     </div>
                                     <div>
                                         <p className="ps-label">Email</p>

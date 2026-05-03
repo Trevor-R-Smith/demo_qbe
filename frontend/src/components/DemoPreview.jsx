@@ -79,8 +79,8 @@ export default function DemoPreview() {
                             <Link to={p.to} className="block">
                                 <div className="ps-card group h-full p-6 transition-all hover:-translate-y-1">
                                     <div className="flex items-center justify-between">
-                                        <div className="grid h-11 w-11 place-items-center border border-white/10 bg-ps-blue/10">
-                                            <p.Icon size={18} className="text-ps-blue" />
+                                        <div className="grid h-11 w-11 place-items-center border border-white/10 bg-ps-red/10">
+                                            <p.Icon size={18} className="text-ps-red" />
                                         </div>
                                         <span className="font-mono text-[10px] tracking-wider text-white/40">
                                             {p.meta}
@@ -94,7 +94,7 @@ export default function DemoPreview() {
                                         <span className="ps-label text-white/40">Try it</span>
                                         <ArrowUpRight
                                             size={18}
-                                            className="text-white/40 transition-all group-hover:text-ps-blue group-hover:translate-x-0.5"
+                                            className="text-white/40 transition-all group-hover:text-ps-red group-hover:translate-x-0.5"
                                         />
                                     </div>
                                 </div>

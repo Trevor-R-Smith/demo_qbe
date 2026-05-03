@@ -9,11 +9,11 @@ export default function Footer() {
             <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-12 md:grid-cols-4">
                 <div className="md:col-span-2">
                     <div className="flex items-center gap-2">
-                        <span className="grid h-7 w-7 place-items-center border border-white/15 bg-ps-blue/15">
-                            <span className="block h-2 w-2 rotate-45 bg-ps-blue" />
+                        <span className="grid h-7 w-7 place-items-center border border-white/15 bg-ps-red/15">
+                            <span className="block h-2 w-2 rotate-45 bg-ps-red" />
                         </span>
                         <span className="font-heading text-2xl font-black uppercase tracking-tight">
-                            Play<span className="text-ps-blue">Sharp</span>
+                            Play<span className="text-ps-red">Sharp</span>
                         </span>
                     </div>
                     <p className="mt-4 max-w-md font-body text-sm leading-relaxed text-white/55">

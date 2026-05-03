@@ -12,13 +12,11 @@ import {
     TabsTrigger,
     TabsContent,
 } from "@/components/ui/tabs";
-import { fetchLeaderboard } from "@/services/api";
+import { fetchLeaderboard, listClubs } from "@/services/api";
 import { Loader2, Trophy } from "lucide-react";
 
-const CLUB_OPTIONS = ["All", "South London FC", "Croydon Juniors", "Elite Academy"];
-
 function rankBadge(idx) {
-    if (idx === 0) return "text-ps-blue";
+    if (idx === 0) return "text-ps-red";
     if (idx === 1) return "text-white";
     if (idx === 2) return "text-ps-turf";
     return "text-white/40";
@@ -33,6 +31,21 @@ export default function Leaderboard({
     const [period, setPeriod] = useState("all");
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [clubOptions, setClubOptions] = useState(["All"]);
+
+    useEffect(() => {
+        let active = true;
+        listClubs()
+            .then((data) => {
+                if (!active) return;
+                const names = (data || []).map((c) => c.name).filter(Boolean);
+                setClubOptions(["All", ...names]);
+            })
+            .catch(() => active && setClubOptions(["All"]));
+        return () => {
+            active = false;
+        };
+    }, []);
 
     useEffect(() => {
         let active = true;
@@ -61,14 +74,14 @@ export default function Leaderboard({
                         <TabsTrigger
                             value="reaction"
                             data-testid="leaderboard-tab-reaction"
-                            className="font-heading text-xs font-bold uppercase tracking-[0.18em] data-[state=active]:bg-ps-blue data-[state=active]:text-white"
+                            className="font-heading text-xs font-bold uppercase tracking-[0.18em] data-[state=active]:bg-ps-red data-[state=active]:text-white"
                         >
                             Reaction
                         </TabsTrigger>
                         <TabsTrigger
                             value="decision"
                             data-testid="leaderboard-tab-decision"
-                            className="font-heading text-xs font-bold uppercase tracking-[0.18em] data-[state=active]:bg-ps-blue data-[state=active]:text-white"
+                            className="font-heading text-xs font-bold uppercase tracking-[0.18em] data-[state=active]:bg-ps-red data-[state=active]:text-white"
                         >
                             Decision
                         </TabsTrigger>
@@ -86,7 +99,7 @@ export default function Leaderboard({
                             <SelectValue placeholder="Club" />
                         </SelectTrigger>
                         <SelectContent className="border-white/15 bg-ps-surface text-white">
-                            {CLUB_OPTIONS.map((c) => (
+                            {clubOptions.map((c) => (
                                 <SelectItem
                                     key={c}
                                     value={c}
@@ -119,7 +132,7 @@ export default function Leaderboard({
             </div>
 
             <div className="border border-white/10 bg-ps-surface">
-                <div className="grid grid-cols-12 border-b border-white/10 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/45 md:px-6">
+                <div className="grid grid-cols-12 border-b border-ps-red bg-ps-red/95 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-white md:px-6">
                     <div className="col-span-1">#</div>
                     <div className="col-span-4">Player</div>
                     <div className="col-span-4 hidden md:block">Club</div>

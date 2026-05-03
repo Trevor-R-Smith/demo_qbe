@@ -130,7 +130,7 @@ export default function ReactionGame({ onComplete }) {
 
                 this._showSuccess = (ms) => {
                     state.phase = "shown";
-                    this.target.setFillStyle(0x0055ff);
+                    this.target.setFillStyle(0xdc1e28);
                     this.titleText.setText(`${Math.round(ms)} MS`);
                     this.titleText.setColor("#FFFFFF");
                     this.subText.setText(state.round < TOTAL_ROUNDS - 1 ? "TAP FOR NEXT ROUND" : "FINAL ROUND COMPLETE");
@@ -244,7 +244,7 @@ export default function ReactionGame({ onComplete }) {
             {running && avg != null && (
                 <div className="border-t border-white/10 px-4 py-3 md:px-6">
                     <span className="ps-label">Average reaction</span>
-                    <span className="ml-3 font-mono text-base text-ps-blue" data-testid="reaction-avg">
+                    <span className="ml-3 font-mono text-base text-ps-red" data-testid="reaction-avg">
                         {Math.round(avg)} MS
                     </span>
                 </div>

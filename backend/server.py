@@ -62,6 +62,7 @@ class Contact(BaseModel):
 class ScoreCreate(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     club: str
+    age: Optional[int] = Field(default=None, ge=6, le=99)
     gameType: Literal["reaction", "decision"]
     score: int = Field(ge=0, le=10000)
     reactionTime: Optional[float] = Field(default=None, ge=0, le=10000)
@@ -72,6 +73,7 @@ class Score(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     club: str
+    age: Optional[int] = None
     gameType: str
     score: int
     reactionTime: Optional[float] = None
@@ -106,7 +108,10 @@ async def root():
 
 @api_router.get("/clubs", response_model=List[Club])
 async def list_clubs():
-    return [Club(name=c) for c in CLUBS]
+    """Return distinct clubs that have submitted scores (used by leaderboard filter)."""
+    distinct = await db.scores.distinct("club")
+    names = sorted(n for n in distinct if isinstance(n, str) and n.strip())
+    return [Club(name=n) for n in names]
 
 
 @api_router.post("/contact", response_model=Contact, status_code=201)
@@ -128,9 +133,14 @@ async def list_contacts(limit: int = Query(50, ge=1, le=500)):
 
 @api_router.post("/score", response_model=Score, status_code=201)
 async def create_score(payload: ScoreCreate):
-    if payload.club not in CLUBS:
-        raise HTTPException(status_code=400, detail=f"Unknown club. Allowed: {CLUBS}")
-    score = Score(**payload.model_dump())
+    club = (payload.club or "").strip()
+    if not club:
+        raise HTTPException(status_code=400, detail="Club name is required.")
+    if len(club) > 120:
+        raise HTTPException(status_code=400, detail="Club name is too long.")
+    data = payload.model_dump()
+    data["club"] = club
+    score = Score(**data)
     doc = score.model_dump()
     doc["createdAt"] = _iso(doc["createdAt"])
     await db.scores.insert_one(doc)

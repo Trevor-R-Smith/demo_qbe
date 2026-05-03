@@ -5,6 +5,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
+                display: ["'Sofia Sans Extra Condensed'", "'Barlow Condensed'", "sans-serif"],
                 heading: ["'Barlow Condensed'", "sans-serif"],
                 body: ["'IBM Plex Sans'", "sans-serif"],
                 mono: ["'JetBrains Mono'", "monospace"],
@@ -45,13 +46,15 @@ module.exports = {
                 ring: "hsl(var(--ring))",
                 ps: {
                     bg: "#0A0A0A",
-                    surface: "#121418",
-                    surface2: "#1A1D24",
-                    blue: "#0055FF",
-                    blueHover: "#3377FF",
+                    surface: "#141414",
+                    surface2: "#1C1C1C",
+                    red: "#DC1E28",
+                    redHover: "#F5333D",
+                    redDeep: "#9E0F17",
                     turf: "#23883C",
                     turfGlow: "rgba(35, 136, 60, 0.4)",
                     defender: "#E63946",
+                    ink: "#050505",
                     line: "rgba(255, 255, 255, 0.1)",
                 },
                 chart: {
@@ -81,8 +84,8 @@ module.exports = {
                     "50%": { backgroundPosition: "100% 50%" },
                 },
                 pulseGlow: {
-                    "0%, 100%": { boxShadow: "0 0 0 0 rgba(0, 85, 255, 0.4)" },
-                    "50%": { boxShadow: "0 0 0 12px rgba(0, 85, 255, 0)" },
+                    "0%, 100%": { boxShadow: "0 0 0 0 rgba(220, 30, 40, 0.45)" },
+                    "50%": { boxShadow: "0 0 0 12px rgba(220, 30, 40, 0)" },
                 },
             },
             animation: {

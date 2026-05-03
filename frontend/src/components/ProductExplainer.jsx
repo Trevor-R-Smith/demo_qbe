@@ -35,7 +35,7 @@ export default function ProductExplainer() {
                         <h2 className="ps-section-title mt-3 text-4xl text-white md:text-5xl">
                             Cognitive training,
                             <br />
-                            <span className="text-ps-blue">measured in ms.</span>
+                            <span className="text-ps-red">measured in ms.</span>
                         </h2>
                         <p className="mt-6 max-w-md text-base leading-relaxed text-white/65">
                             PlaySharp is a browser-based cognitive training
@@ -54,8 +54,8 @@ export default function ProductExplainer() {
                                     data-testid={`pillar-${p.label.toLowerCase().replace(/\s/g, "-")}`}
                                     className="flex flex-col gap-4 bg-ps-surface p-6"
                                 >
-                                    <div className="grid h-10 w-10 place-items-center border border-white/10 bg-ps-blue/10">
-                                        <p.Icon size={16} className="text-ps-blue" />
+                                    <div className="grid h-10 w-10 place-items-center border border-white/10 bg-ps-red/10">
+                                        <p.Icon size={16} className="text-ps-red" />
                                     </div>
                                     <p className="ps-label text-white/55">{p.label}</p>
                                     <h3 className="font-heading text-xl font-bold uppercase tracking-tight text-white">

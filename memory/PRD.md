@@ -33,16 +33,27 @@ Build a fully working browser-based football cognitive training platform called 
 - Demo mode under 60s flow: Reaction → Decision → Leaderboard
 - Dark sports-tech UI, Barlow Condensed + JetBrains Mono
 
-## What's Implemented (2026-02 — V1)
+## What's Implemented (2026-02 — V1 → V1.1)
 
+### V1.1 changes (this iteration)
+- ✅ Shifted to red/black/white football-club editorial theme (Atleticos-inspired)
+- ✅ Added Sofia Sans Extra Condensed display font alongside Barlow Condensed
+- ✅ Hero redesigned: stadium photography, editorial headline with red-box highlight on "quicker." and italic red "smarter.", match-day HUD card with red top strip and diagonal corner
+- ✅ Demo setup now collects **Player name + Age (6-99) + Club/School (free text)** — no more hardcoded clubs
+- ✅ Reaction/Decision standalone game pages also moved to free-text club + age inputs
+- ✅ Backend: Score model accepts optional `age`, `club` is free-text (no allow-list); empty club rejected with 400
+- ✅ `/api/clubs` now returns distinct clubs from the scores collection (so leaderboard filter dynamically reflects real data)
+- ✅ Leaderboard component fetches club options dynamically
+- ✅ League-table leaderboard header strip in brand red
+
+### V1 (original)
 - ✅ FastAPI backend with `/api/contact`, `/api/score`, `/api/leaderboard/{type}`, `/api/clubs`
-- ✅ Auto-seed of 40 sample scores across 3 clubs on first startup
+- ✅ Auto-seed of 40 sample scores across 3 sample clubs on first startup
 - ✅ Home page (Hero, Product Explainer, Audience Cards, Demo Preview, Leaderboard preview, Pricing, Contact CTA)
 - ✅ /pricing page with feature comparison table
 - ✅ /contact page with validated form + Sonner toasts
 - ✅ /demo flow (Setup → Reaction → Decision → Leaderboard)
-- ✅ /games/reaction standalone page
-- ✅ /games/decision standalone page
+- ✅ /games/reaction & /games/decision standalone pages
 - ✅ /leaderboard page with club + weekly filters and Reaction/Decision tabs
 - ✅ Phaser ReactionGame (10 rounds, false-start, ms precision, score 0-1000)
 - ✅ Phaser DecisionGame (5 scenarios, pass/shoot/dribble, time-bar timeout)

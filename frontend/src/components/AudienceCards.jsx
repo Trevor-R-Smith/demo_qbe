@@ -96,7 +96,7 @@ export default function AudienceCards() {
                                             key={b}
                                             className="flex items-center gap-2 text-xs text-white/55"
                                         >
-                                            <span className="h-1 w-1 bg-ps-blue" />
+                                            <span className="h-1 w-1 bg-ps-red" />
                                             {b}
                                         </li>
                                     ))}

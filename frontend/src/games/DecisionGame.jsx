@@ -69,7 +69,7 @@ const SCENARIOS = [
 
 const ACTIONS = [
     { key: "pass", label: "PASS", color: "#23883C" },
-    { key: "shoot", label: "SHOOT", color: "#0055FF" },
+    { key: "shoot", label: "SHOOT", color: "#DC1E28" },
     { key: "dribble", label: "DRIBBLE", color: "#E6B800" },
 ];
 
@@ -144,8 +144,8 @@ export default function DecisionGame({ onComplete }) {
             const tx = sc.teammate.x * w;
             const ty = sc.teammate.y * h;
 
-            // Striker (blue) - YOU
-            scene.add.circle(sx, sy, 16, 0x0055ff).setStrokeStyle(2, 0xffffff, 0.8);
+            // Striker (red) - YOU / home kit
+            scene.add.circle(sx, sy, 16, 0xdc1e28).setStrokeStyle(2, 0xffffff, 0.9);
             scene.add.text(sx, sy - 30, "YOU", {
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: "10px",
@@ -154,20 +154,20 @@ export default function DecisionGame({ onComplete }) {
             // Ball at striker feet
             scene.add.circle(sx + 14, sy + 14, 5, 0xffffff).setStrokeStyle(1, 0x000000, 0.4);
 
-            // Defender (red)
-            scene.add.circle(dx, dy, 16, 0xe63946).setStrokeStyle(2, 0x000000, 0.4);
+            // Defender (black away kit)
+            scene.add.circle(dx, dy, 16, 0x0a0a0a).setStrokeStyle(2, 0xffffff, 0.6);
             scene.add.text(dx, dy - 30, "DEF", {
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: "10px",
-                color: "#E63946",
+                color: "#FFFFFF",
             }).setOrigin(0.5);
 
-            // Teammate (white)
-            scene.add.circle(tx, ty, 16, 0xffffff).setStrokeStyle(2, 0x0055ff, 0.6);
+            // Teammate (white kit with red outline)
+            scene.add.circle(tx, ty, 16, 0xffffff).setStrokeStyle(2, 0xdc1e28, 0.9);
             scene.add.text(tx, ty - 30, "TEAM", {
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: "10px",
-                color: "#FFFFFF99",
+                color: "#FFFFFFCC",
             }).setOrigin(0.5);
 
             // Pass line dashed
@@ -185,7 +185,7 @@ export default function DecisionGame({ onComplete }) {
 
             // Shot line dashed
             const shot = scene.add.graphics();
-            shot.lineStyle(1, 0x0055ff, 0.4);
+            shot.lineStyle(1, 0xdc1e28, 0.4);
             const goalCx = w - 8;
             const goalCy = h / 2;
             for (let i = 0; i < segs; i += 2) {
@@ -213,7 +213,7 @@ export default function DecisionGame({ onComplete }) {
             // Time bar
             const barWidth = w - 48;
             scene.add.rectangle(24 + barWidth / 2, h - 18, barWidth, 4, 0xffffff, 0.08);
-            const bar = scene.add.rectangle(24, h - 18, barWidth, 4, 0x0055ff);
+            const bar = scene.add.rectangle(24, h - 18, barWidth, 4, 0xdc1e28);
             bar.setOrigin(0, 0.5);
 
             scene.tweens.add({

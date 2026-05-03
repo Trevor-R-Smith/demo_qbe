@@ -4,20 +4,21 @@ import { Link } from "react-router-dom";
 import { submitScore } from "@/services/api";
 import { toast } from "sonner";
 
-const CLUBS = ["South London FC", "Croydon Juniors", "Elite Academy"];
-
 export default function DecisionGamePage() {
     const [name, setName] = useState("");
-    const [club, setClub] = useState(CLUBS[0]);
+    const [club, setClub] = useState("");
+    const [age, setAge] = useState("");
     const [started, setStarted] = useState(false);
     const [result, setResult] = useState(null);
 
     const handleComplete = async (r) => {
         setResult(r);
         try {
+            const parsedAge = age ? Number(age) : null;
             await submitScore({
                 name: name.trim(),
-                club,
+                club: club.trim(),
+                ...(parsedAge && parsedAge >= 6 && parsedAge <= 99 ? { age: parsedAge } : {}),
                 gameType: "decision",
                 score: r.score,
             });
@@ -50,30 +51,32 @@ export default function DecisionGamePage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
+                    <input
+                        data-testid="decision-input-age"
+                        className="ps-input mt-4"
+                        type="number"
+                        min="6"
+                        max="99"
+                        placeholder="Age"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                    />
                     <div className="mt-6">
-                        <p className="ps-label">Club</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                            {CLUBS.map((c) => (
-                                <button
-                                    key={c}
-                                    onClick={() => setClub(c)}
-                                    data-testid={`decision-club-${c.replace(/\s/g, "-")}`}
-                                    className={[
-                                        "border px-4 py-2 font-heading text-xs font-bold uppercase tracking-[0.16em]",
-                                        club === c
-                                            ? "border-ps-blue bg-ps-blue/10 text-white"
-                                            : "border-white/10 bg-ps-surface text-white/65",
-                                    ].join(" ")}
-                                >
-                                    {c}
-                                </button>
-                            ))}
-                        </div>
+                        <label className="ps-label" htmlFor="decision-club">Club / School</label>
+                        <input
+                            id="decision-club"
+                            data-testid="decision-input-club"
+                            className="ps-input mt-2"
+                            type="text"
+                            placeholder="e.g. South London FC"
+                            value={club}
+                            onChange={(e) => setClub(e.target.value)}
+                        />
                     </div>
                     <button
                         data-testid="decision-start-button"
                         onClick={() => setStarted(true)}
-                        disabled={!name.trim()}
+                        disabled={!name.trim() || !club.trim()}
                         className="ps-btn-primary mt-8 disabled:opacity-50"
                     >
                         Begin Drill
@@ -103,7 +106,7 @@ export default function DecisionGamePage() {
                     </div>
                     <div className="ps-card p-6">
                         <p className="ps-label">Avg decision time</p>
-                        <div className="ps-metric mt-3 text-ps-blue">
+                        <div className="ps-metric mt-3 text-ps-red">
                             {Math.round(result.avgTime)}ms
                         </div>
                     </div>

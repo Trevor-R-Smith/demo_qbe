@@ -81,7 +81,7 @@ export default function Pricing() {
                         <div className="grid grid-cols-12 border-b border-white/10 px-4 py-4 md:px-6">
                             <div className="col-span-6 ps-label">Feature</div>
                             <div className="col-span-3 ps-label text-center">Basic</div>
-                            <div className="col-span-3 ps-label text-center text-ps-blue">
+                            <div className="col-span-3 ps-label text-center text-ps-red">
                                 Advanced
                             </div>
                         </div>
