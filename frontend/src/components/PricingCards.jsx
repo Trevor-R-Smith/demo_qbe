@@ -11,7 +11,7 @@ const PLANS = [
         features: [
             "Limited reaction drill (5 rounds)",
             "Limited decision drill (3 scenarios)",
-            "Global leaderboard viewing",
+            "Personal leaderboard only",
             "Single-player only",
         ],
         cta: "Start Free",
@@ -31,6 +31,7 @@ const PLANS = [
             "Scanning ability training",
             "Decision-making under pressure",
             "Football intelligence scoring",
+            "Global leaderboard access",
             "Personal progression history",
         ],
         cta: "Start Free Demo",
@@ -42,7 +43,7 @@ const PLANS = [
     {
         key: "team",
         name: "Team",
-        price: "£99",
+        price: "£199",
         period: "/month",
         tagline: "For clubs & teams. Squad-level cognitive performance.",
         features: [
@@ -69,7 +70,7 @@ const PLANS = [
         tagline: "Curriculum-friendly PE integration.",
         features: [
             "Everything in Team",
-            "School-wide leaderboard",
+            "Global + school-wide leaderboards",
             "Classroom-safe mode",
             "Teacher admin dashboard",
             "PE curriculum alignment (KS3–KS5)",
@@ -90,7 +91,7 @@ const PLANS = [
         tagline: "For professional academies & development pathways.",
         features: [
             "Everything in Team",
-            "Academy-wide leaderboard",
+            "Global + academy-wide leaderboards",
             "Age-group cohorts (U9–U21)",
             "Player development tracking",
             "Scout-ready performance reports",

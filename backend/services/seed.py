@@ -48,6 +48,25 @@ _SEED_DECISION = [
     ("Liam O.",     "Elite Academy",    16,  60),
 ]
 
+# Scanning — higher score better (same convention as decision).
+_SEED_SCANNING = [
+    ("Noah P.",     "South London FC",  18, 100),
+    ("Marcus J.",   "South London FC",  17,  96),
+    ("Harvey D.",   "Croydon Juniors",  16,  92),
+    ("Kai S.",      "Elite Academy",    19,  90),
+    ("Finley G.",   "South London FC",  16,  88),
+    ("Tyrell B.",   "Croydon Juniors",  18,  84),
+    ("Theo C.",     "Elite Academy",    17,  80),
+    ("Ethan W.",    "Elite Academy",    15,  78),
+    ("Leo A.",      "Croydon Juniors",  17,  74),
+    ("Oscar T.",    "Elite Academy",    18,  70),
+    ("Jamal R.",    "South London FC",  14,  66),
+    ("Daniel L.",   "Croydon Juniors",  19,  62),
+    ("Reece M.",    "Croydon Juniors",  15,  58),
+    ("Aaron K.",    "South London FC",  16,  54),
+    ("Liam O.",     "Elite Academy",    16,  48),
+]
+
 
 async def seed_sample_data() -> None:
     """Populate the leaderboard once, on first boot."""
@@ -75,6 +94,16 @@ async def seed_sample_data() -> None:
             "id": str(uuid.uuid4()),
             "name": name, "club": club, "age": age,
             "gameType": "decision",
+            "score": score, "reactionTime": None,
+            "createdAt": _iso(created), "seeded": True,
+        })
+
+    for name, club, age, score in _SEED_SCANNING:
+        created = now - timedelta(days=random.randint(1, 14), hours=random.randint(0, 23))
+        sample_scores.append({
+            "id": str(uuid.uuid4()),
+            "name": name, "club": club, "age": age,
+            "gameType": "scanning",
             "score": score, "reactionTime": None,
             "createdAt": _iso(created), "seeded": True,
         })

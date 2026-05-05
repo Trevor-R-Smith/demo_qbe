@@ -36,4 +36,4 @@ logging.basicConfig(
 logger = logging.getLogger("playsharp")
 
 
-GAME_TYPES = {"reaction", "decision"}
+GAME_TYPES = {"reaction", "decision", "scanning"}

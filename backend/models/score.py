@@ -11,7 +11,7 @@ class ScoreCreate(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     club: str
     age: Optional[int] = Field(default=None, ge=6, le=99)
-    gameType: Literal["reaction", "decision"]
+    gameType: Literal["reaction", "decision", "scanning"]
     score: int = Field(ge=0, le=10000)
     reactionTime: Optional[float] = Field(default=None, ge=0, le=10000)
 

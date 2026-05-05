@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import ReactionGame from "@/games/ReactionGame";
 import DecisionGame from "@/games/DecisionGame";
+import ScanningGame from "@/games/ScanningGame";
 import Leaderboard from "@/components/Leaderboard";
 import ClubClaimModal from "@/components/ClubClaimModal";
 import { Link } from "react-router-dom";
-import { Activity, Brain, Trophy, ArrowRight } from "lucide-react";
+import { Activity, Brain, Eye, Trophy, ArrowRight } from "lucide-react";
 import { submitScore } from "@/services/api";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ const STEPS = [
     { key: "intro", label: "Setup" },
     { key: "reaction", label: "Reaction" },
     { key: "decision", label: "Decision" },
+    { key: "scanning", label: "Scanning" },
     { key: "leaderboard", label: "Leaderboard" },
 ];
 
@@ -22,6 +24,7 @@ export default function Demo() {
     const [age, setAge] = useState("");
     const [reactionResult, setReactionResult] = useState(null);
     const [decisionResult, setDecisionResult] = useState(null);
+    const [scanningResult, setScanningResult] = useState(null);
     const [coachNotes, setCoachNotes] = useState([]);
     const [isNewClub, setIsNewClub] = useState(false);
     const [canonicalClub, setCanonicalClub] = useState("");
@@ -46,11 +49,13 @@ export default function Demo() {
             if (res?.club) setCanonicalClub(res.club);
             if (res?.isNewClub) setIsNewClub(true);
             setRefreshKey((k) => k + 1);
-            toast.success(
+            const msg =
                 gameType === "reaction"
                     ? `Reaction saved (${Math.round(payload.reactionTime)}ms)`
-                    : `Decision saved (${payload.score}/100)`
-            );
+                    : gameType === "decision"
+                        ? `Decision saved (${payload.score}/100)`
+                        : `Scanning saved (${payload.score}/100)`;
+            toast.success(msg);
         } catch {
             toast.error("Couldn't save score (continuing demo)");
         }
@@ -64,6 +69,10 @@ export default function Demo() {
         setDecisionResult(result);
         if (Array.isArray(result.decisions)) setCoachNotes(result.decisions);
         await submit("decision", result);
+    };
+    const handleScanningDone = async (result) => {
+        setScanningResult(result);
+        await submit("scanning", result);
     };
 
     // When we land on the leaderboard step with a new club, show the claim modal once.
@@ -129,17 +138,18 @@ export default function Demo() {
                 {step === "intro" && (
                     <div data-testid="demo-step-intro" className="grid grid-cols-1 gap-10 lg:grid-cols-12">
                         <div className="lg:col-span-7">
-                            <p className="ps-label">PlaySharp · 60s Demo</p>
+                            <p className="ps-label">PlaySharp · 90s Demo</p>
                             <h1 className="ps-section-title mt-3 text-5xl text-white md:text-6xl">
-                                Reaction → Decision → Leaderboard.
+                                Reaction → Decision → Scanning → Leaderboard.
                             </h1>
                             <p className="mt-5 max-w-xl text-base text-white/65">
                                 You'll run a 5-round reaction drill, a 4-scenario
-                                decision drill, then see your score on the global
-                                leaderboard. Built to take under 60 seconds.
+                                decision drill, a 5-round scanning drill, then see
+                                your scores on the global leaderboard. Built to take
+                                under 90 seconds.
                             </p>
 
-                            <div className="mt-10 grid grid-cols-3 gap-4">
+                            <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
                                 <div className="ps-card p-4">
                                     <Activity size={16} className="text-ps-red" />
                                     <p className="ps-label mt-3">Step 1</p>
@@ -155,8 +165,15 @@ export default function Demo() {
                                     </p>
                                 </div>
                                 <div className="ps-card p-4">
-                                    <Trophy size={16} className="text-ps-turf" />
+                                    <Eye size={16} className="text-ps-red" />
                                     <p className="ps-label mt-3">Step 3</p>
+                                    <p className="mt-1 font-heading text-base font-bold uppercase text-white">
+                                        Scanning
+                                    </p>
+                                </div>
+                                <div className="ps-card p-4">
+                                    <Trophy size={16} className="text-ps-turf" />
+                                    <p className="ps-label mt-3">Step 4</p>
                                     <p className="mt-1 font-heading text-base font-bold uppercase text-white">
                                         Rank
                                     </p>
@@ -224,7 +241,7 @@ export default function Demo() {
                     <div data-testid="demo-step-reaction">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <p className="ps-label">Step 1 / 3</p>
+                                <p className="ps-label">Step 1 / 4</p>
                                 <h2 className="font-heading text-3xl font-bold uppercase text-white">
                                     Reaction Drill
                                 </h2>
@@ -250,14 +267,14 @@ export default function Demo() {
                     <div data-testid="demo-step-decision">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <p className="ps-label">Step 2 / 3</p>
+                                <p className="ps-label">Step 2 / 4</p>
                                 <h2 className="font-heading text-3xl font-bold uppercase text-white">
                                     Decision Drill
                                 </h2>
                             </div>
                             <button
                                 data-testid="demo-skip-decision"
-                                onClick={() => setStep("leaderboard")}
+                                onClick={() => setStep("scanning")}
                                 className="ps-btn-secondary"
                             >
                                 Skip →
@@ -266,6 +283,32 @@ export default function Demo() {
                         <DecisionGame
                             onComplete={async (r) => {
                                 await handleDecisionDone(r);
+                                setStep("scanning");
+                            }}
+                        />
+                    </div>
+                )}
+
+                {step === "scanning" && (
+                    <div data-testid="demo-step-scanning">
+                        <div className="mb-6 flex items-center justify-between">
+                            <div>
+                                <p className="ps-label">Step 3 / 4</p>
+                                <h2 className="font-heading text-3xl font-bold uppercase text-white">
+                                    Scanning Drill
+                                </h2>
+                            </div>
+                            <button
+                                data-testid="demo-skip-scanning"
+                                onClick={() => setStep("leaderboard")}
+                                className="ps-btn-secondary"
+                            >
+                                Skip →
+                            </button>
+                        </div>
+                        <ScanningGame
+                            onComplete={async (r) => {
+                                await handleScanningDone(r);
                                 setStep("leaderboard");
                             }}
                         />
@@ -276,7 +319,7 @@ export default function Demo() {
                     <div data-testid="demo-step-leaderboard">
                         <div className="mb-6 flex items-center justify-between">
                             <div>
-                                <p className="ps-label">Step 3 / 3 · Complete</p>
+                                <p className="ps-label">Step 4 / 4 · Complete</p>
                                 <h2 className="font-heading text-3xl font-bold uppercase text-white">
                                     Your performance
                                 </h2>
@@ -288,7 +331,7 @@ export default function Demo() {
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                             <div className="ps-card p-6">
                                 <p className="ps-label">Reaction</p>
                                 <div className="ps-metric mt-3 text-ps-red">
@@ -313,13 +356,27 @@ export default function Demo() {
                                         : "Skipped"}
                                 </p>
                             </div>
+                            <div className="ps-card p-6" data-testid="demo-summary-scanning">
+                                <p className="ps-label">Scanning</p>
+                                <div className="ps-metric mt-3 text-white">
+                                    {scanningResult ? `${scanningResult.score}/100` : "—"}
+                                </div>
+                                <p className="mt-2 text-xs text-white/45">
+                                    {scanningResult
+                                        ? `${scanningResult.correct}/${scanningResult.total} correct · ${Math.round(scanningResult.avgTime || 0)}ms avg`
+                                        : "Skipped"}
+                                </p>
+                            </div>
                             <div className="ps-card p-6">
                                 <p className="ps-label">Football IQ</p>
                                 <div className="ps-metric mt-3 text-white">
                                     {(() => {
                                         const r = reactionResult?.score || 0;
                                         const d = decisionResult?.score || 0;
-                                        const iq = Math.round(r * 0.6 + d * 4);
+                                        const s = scanningResult?.score || 0;
+                                        // Reaction normalized to 0-100 (raw is 0-1000) before blending.
+                                        const rNorm = Math.min(100, r / 10);
+                                        const iq = Math.round(rNorm * 0.35 + d * 0.35 + s * 0.30);
                                         return iq || "—";
                                     })()}
                                 </div>

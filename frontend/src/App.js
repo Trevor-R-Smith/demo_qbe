@@ -11,6 +11,7 @@ import Demo from "@/pages/Demo";
 import LeaderboardPage from "@/pages/LeaderboardPage";
 import ReactionGamePage from "@/pages/ReactionGamePage";
 import DecisionGamePage from "@/pages/DecisionGamePage";
+import ScanningGamePage from "@/pages/ScanningGamePage";
 
 function App() {
     return (
@@ -26,6 +27,7 @@ function App() {
                         <Route path="/leaderboard" element={<LeaderboardPage />} />
                         <Route path="/games/reaction" element={<ReactionGamePage />} />
                         <Route path="/games/decision" element={<DecisionGamePage />} />
+                        <Route path="/games/scanning" element={<ScanningGamePage />} />
                     </Routes>
                 </main>
                 <Footer />

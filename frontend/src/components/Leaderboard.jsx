@@ -117,9 +117,17 @@ export default function Leaderboard({
                         >
                             Decision
                         </TabsTrigger>
+                        <TabsTrigger
+                            value="scanning"
+                            data-testid="leaderboard-tab-scanning"
+                            className="font-heading text-xs font-bold uppercase tracking-[0.18em] data-[state=active]:bg-ps-red data-[state=active]:text-white"
+                        >
+                            Scanning
+                        </TabsTrigger>
                     </TabsList>
                     <TabsContent value="reaction" />
                     <TabsContent value="decision" />
+                    <TabsContent value="scanning" />
                 </Tabs>
 
                 <div className="flex flex-wrap items-center gap-2">

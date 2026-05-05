@@ -30,7 +30,7 @@ async def get_leaderboard(
         cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
         query["createdAt"] = {"$gte": cutoff}
 
-    # Reaction = lower time better; Decision = higher score better.
+    # Reaction = lower time better; Decision & Scanning = higher score better.
     sort_field, sort_dir = ("reactionTime", 1) if game_type == "reaction" else ("score", -1)
 
     cursor = db.scores.find(query, {"_id": 0}).sort(sort_field, sort_dir).limit(limit)
