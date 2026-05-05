@@ -33,32 +33,36 @@ Build a fully working browser-based football cognitive training platform called 
 - Demo mode under 60s flow: Reaction → Decision → Leaderboard
 - Dark sports-tech UI, Barlow Condensed + JetBrains Mono
 
-## What's Implemented (2026-02 — V1 → V1.1)
+## What's Implemented (2026-02 → 2026-05 — V1 → V1.3)
 
-### V1.1 changes (this iteration)
-- ✅ Shifted to red/black/white football-club editorial theme (Atleticos-inspired)
-- ✅ Added Sofia Sans Extra Condensed display font alongside Barlow Condensed
-- ✅ Hero redesigned: stadium photography, editorial headline with red-box highlight on "quicker." and italic red "smarter.", match-day HUD card with red top strip and diagonal corner
-- ✅ Demo setup now collects **Player name + Age (6-99) + Club/School (free text)** — no more hardcoded clubs
-- ✅ Reaction/Decision standalone game pages also moved to free-text club + age inputs
-- ✅ Backend: Score model accepts optional `age`, `club` is free-text (no allow-list); empty club rejected with 400
-- ✅ `/api/clubs` now returns distinct clubs from the scores collection (so leaderboard filter dynamically reflects real data)
-- ✅ Leaderboard component fetches club options dynamically
-- ✅ League-table leaderboard header strip in brand red
+### V1.3 changes (this iteration)
+- ✅ **Pricing — 5 tiers**: Free £0, Individual Player £19/mo, Team £99/mo (Most Popular), School Contact-for-price, Academy Contact-for-price; comparison table updated to 5 columns; AI Coaching badge on the 3 paid tiers
+- ✅ **Decision game** completely rebuilt — 6 animated, realistic football scenarios with A/B/C choices instead of pass/shoot/dribble:
+   1. **1v1 With the Keeper** (striker through on goal, GK rushing out)
+   2. **Winger to the Byline** (cross / cut-in / cutback)
+   3. **Defender Last Man** (offside trap / drop / sprint back)
+   4. **Counter-attack Midfielder** (through-ball / switch / slow it)
+   5. **Free Kick — Edge of Box** (whip in / shoot / short)
+   6. **High Press Trigger** (press CB / cut lane / drop)
+   - Phaser tweens animate player runs over 1.4–1.8s before pause + question overlay
+   - Realistic pitch with both goal areas, 18-yard boxes, 6-yard boxes, penalty spots, centre circle, attack-direction arrow
+   - Kit colours: red home / black opponent / yellow keeper / white teammate
+- ✅ **Backend `canonical_club()`** — `south london fc` → `South London FC`; preserves FC/AFC/AC/CF/U12/U-12/U18 + any user-supplied all-caps acronym
+- ✅ **Slowapi rate limiting** with custom key_func reading `X-Forwarded-For` (works behind k8s ingress) + SlowAPIMiddleware: `/score` 20/min, `/contact` 10/min, `/club-claim` 5/min — verified 5/25 success on burst test
+- ✅ **`POST /api/club-claim`** new endpoint — captures B2B leads (contactName, email, role, squadSize, message)
+- ✅ **`POST /api/score` returns `isNewClub` flag** — true if first score for that canonical club
+- ✅ **ClubClaimModal** triggered when demo completes for a brand-new club; converts arbitrary-club input into qualified pilot leads (coach email + role + squad size)
+
+### V1.2 (theme + free-text club)
+- ✅ Atleticos red/black/white football-club editorial theme; Sofia Sans Extra Condensed display font
+- ✅ Free-text Player name + Age + Club input on Demo / Reaction / Decision pages
+- ✅ Hero: stadium photo + red-box-highlighted "quicker." + italic red "smarter."
 
 ### V1 (original)
-- ✅ FastAPI backend with `/api/contact`, `/api/score`, `/api/leaderboard/{type}`, `/api/clubs`
-- ✅ Auto-seed of 40 sample scores across 3 sample clubs on first startup
-- ✅ Home page (Hero, Product Explainer, Audience Cards, Demo Preview, Leaderboard preview, Pricing, Contact CTA)
-- ✅ /pricing page with feature comparison table
-- ✅ /contact page with validated form + Sonner toasts
-- ✅ /demo flow (Setup → Reaction → Decision → Leaderboard)
-- ✅ /games/reaction & /games/decision standalone pages
-- ✅ /leaderboard page with club + weekly filters and Reaction/Decision tabs
-- ✅ Phaser ReactionGame (10 rounds, false-start, ms precision, score 0-1000)
-- ✅ Phaser DecisionGame (5 scenarios, pass/shoot/dribble, time-bar timeout)
+- ✅ FastAPI backend, React + Phaser 4 frontend
+- ✅ Home / Pricing / Contact / Demo / Leaderboard / Game pages
+- ✅ Reaction game (10 rounds, false-start detection, ms precision)
 - ✅ All elements use `data-testid`
-- ✅ README with structure + run instructions
 
 ## P0 / P1 / P2 Backlog
 

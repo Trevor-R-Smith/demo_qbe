@@ -13,6 +13,7 @@ from typing import List, Optional, Literal
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
@@ -33,10 +34,21 @@ db = client[os.environ["DB_NAME"]]
 app = FastAPI(title="PlaySharp API", version="1.2.0")
 api_router = APIRouter(prefix="/api")
 
-# Rate limiter — keyed by client IP (honours X-Forwarded-For via get_remote_address).
-limiter = Limiter(key_func=get_remote_address, default_limits=[])
+
+def _client_key(request: Request) -> str:
+    """Use the first IP from X-Forwarded-For (real client) so rate limiting
+    works behind k8s/ingress proxies. Falls back to the direct peer address."""
+    fwd = request.headers.get("x-forwarded-for", "")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return get_remote_address(request)
+
+
+# Rate limiter — keyed by real client IP via X-Forwarded-For.
+limiter = Limiter(key_func=_client_key, default_limits=[])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -78,6 +90,9 @@ def canonical_club(raw: Optional[str]) -> str:
             return upper
         if re.fullmatch(r"U-?\d+", upper):
             return upper
+        # Preserve user-supplied all-uppercase acronyms of length >= 2 that contain only letters.
+        if len(word) >= 2 and word.isupper() and word.isalpha():
+            return word
         return word[:1].upper() + word[1:].lower()
 
     def _cap(word: str) -> str:
