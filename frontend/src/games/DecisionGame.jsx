@@ -16,7 +16,11 @@ import Phaser from "phaser";
  * (excluding the keeper, who is closest to y=0). Attackers must be at y >= the
  * offside line at the moment the ball is played to be onside.
  *
- * Props: onComplete({ score, correct, total, avgTime })
+ * Props: onComplete({ score, total, avgTime, decisions })
+ *
+ * Scenarios are strictly advisory — each option carries a reason, and one option
+ * is flagged with `recommended: true` (the coach's preferred call). The game
+ * never labels a user's pick as "correct" or "wrong".
  */
 
 const PITCH = { bg: 0x0c2e17, stripeA: 0x103e1f, stripeB: 0x0a2515, line: 0xffffff };
@@ -106,19 +110,17 @@ const SCENARIOS = [
             {
                 key: "A",
                 label: "Slip it inside the RB to your overlapping LB",
-                correct: true,
+                recommended: true,
                 reason: "Classic 2v1. RB has bitten, CBs are holding shape — your full-back arrives with momentum into a gold-channel cross opportunity.",
             },
             {
                 key: "B",
                 label: "Cross immediately into the box",
-                correct: false,
                 reason: "Premature. You're not at the byline yet and the angle is too tight. Use the overlap first to break the line, then cross.",
             },
             {
                 key: "C",
                 label: "Drive infield with the ball",
-                correct: false,
                 reason: "Both centre-backs are holding compact — driving inside walks straight into them. The free space is on the outside.",
             },
         ],
@@ -153,19 +155,17 @@ const SCENARIOS = [
             {
                 key: "A",
                 label: "Drive a low through-ball before the line resets",
-                correct: true,
+                recommended: true,
                 reason: "Striker started onside and burst depth as the line stepped late. Low first-time vertical ball — he's onto it before they recover.",
             },
             {
                 key: "B",
                 label: "Switch wide to the winger",
-                correct: false,
                 reason: "Wastes the central momentum. Switching gives the back four time to drop with the striker and reset the offside trap.",
             },
             {
                 key: "C",
                 label: "Hold and wait for the line to drop",
-                correct: false,
                 reason: "Compact lines don't drop — they hold and rely on stepping. Your moment is now, not later.",
             },
         ],
@@ -202,19 +202,17 @@ const SCENARIOS = [
             {
                 key: "A",
                 label: "Whip across the 6-yard line for the near-post run",
-                correct: true,
+                recommended: true,
                 reason: "Near-post run attacks the highest-percentage zone. Whipped ball across the 6-yard line is hardest to defend — keeper rooted, defender beaten by the angle.",
             },
             {
                 key: "B",
                 label: "Cut back to the penalty spot",
-                correct: false,
                 reason: "Decent option — but slower and lets the keeper reset. Near-post is the elite finish here.",
             },
             {
                 key: "C",
                 label: "Float a cross to the far-post runner",
-                correct: false,
                 reason: "Lower-percentage. The far-post arrival is late and the ball loses pace — a hung cross gives the GK time to claim or punch.",
             },
         ],
@@ -516,7 +514,7 @@ export default function DecisionGame({ onComplete }) {
     const handlePick = (opt) => {
         if (phase !== "deciding") return;
         const ms = Date.now() - decideAtRef.current;
-        const recommended = sc.options.find((o) => o.recommended || o.correct);
+        const recommended = sc.options.find((o) => o.recommended);
         const entry = {
             scenarioId: sc.id,
             scenarioTitle: sc.title,
@@ -526,6 +524,7 @@ export default function DecisionGame({ onComplete }) {
             recommendedKey: recommended?.key,
             recommendedLabel: recommended?.label,
             recommendedReason: recommended?.reason,
+            matchesRecommended: recommended ? recommended.key === opt.key : false,
             ms,
         };
         const next = [...results, entry];
@@ -540,6 +539,7 @@ export default function DecisionGame({ onComplete }) {
                 setDone(true);
                 const total = SCENARIOS.length;
                 const avgTime = next.reduce((a, b) => a + b.ms, 0) / Math.max(1, next.length);
+                const matchesCoach = next.filter((d) => d.matchesRecommended).length;
                 // Speed-only score (advisory drill — no right/wrong scoring).
                 // 100 when avg <= 800ms, 50 when avg >= 3200ms (linear)
                 const avgClamped = Math.max(800, Math.min(3200, avgTime));
@@ -550,6 +550,7 @@ export default function DecisionGame({ onComplete }) {
                         score,
                         total,
                         avgTime,
+                        matchesCoach,
                         decisions: next,
                     });
                 }
@@ -557,7 +558,7 @@ export default function DecisionGame({ onComplete }) {
         }, 2200);
     };
 
-    const recommendedOption = sc.options.find((o) => o.recommended || o.correct);
+    const recommendedOption = sc.options.find((o) => o.recommended);
 
     return (
         <div data-testid="decision-game" className="border border-white/10 bg-ps-surface">

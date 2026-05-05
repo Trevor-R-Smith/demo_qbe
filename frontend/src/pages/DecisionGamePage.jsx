@@ -99,9 +99,9 @@ export default function DecisionGamePage() {
                         </div>
                     </div>
                     <div className="ps-card p-6">
-                        <p className="ps-label">Correct</p>
+                        <p className="ps-label">Aligned with coach</p>
                         <div className="ps-metric mt-3 text-white">
-                            {result.correct}/{result.total}
+                            {result.matchesCoach}/{result.total}
                         </div>
                     </div>
                     <div className="ps-card p-6">
