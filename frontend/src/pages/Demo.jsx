@@ -132,7 +132,7 @@ export default function Demo() {
                                 Reaction → Decision → Leaderboard.
                             </h1>
                             <p className="mt-5 max-w-xl text-base text-white/65">
-                                You'll run a 10-round reaction drill, a 5-scenario
+                                You'll run a 5-round reaction drill, a 4-scenario
                                 decision drill, then see your score on the global
                                 leaderboard. Built to take under 60 seconds.
                             </p>

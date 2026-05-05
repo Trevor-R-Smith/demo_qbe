@@ -36,8 +36,8 @@ export default function ReactionGamePage() {
                 Reaction Game
             </h1>
             <p className="mt-3 max-w-xl text-sm text-white/60">
-                10 rounds. Wait for the green. Don't jump the gun. Lower is
-                better. False starts cost you.
+                5 rounds. A green circle flashes at a random spot — tap it as
+                fast as you can. Lower is better. False starts cost you.
             </p>
 
             {!started && (

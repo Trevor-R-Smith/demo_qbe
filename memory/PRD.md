@@ -33,35 +33,35 @@ Build a fully working browser-based football cognitive training platform called 
 - Demo mode under 60s flow: Reaction → Decision → Leaderboard
 - Dark sports-tech UI, Barlow Condensed + JetBrains Mono
 
-## What's Implemented (2026-02 → 2026-05 — V1 → V1.3)
+## What's Implemented (2026-02 → 2026-05 — V1 → V1.4)
 
-### V1.3 changes (this iteration)
-- ✅ **Pricing — 5 tiers**: Free £0, Individual Player £19/mo, Team £99/mo (Most Popular), School Contact-for-price, Academy Contact-for-price; comparison table updated to 5 columns; AI Coaching badge on the 3 paid tiers
-- ✅ **Decision game** completely rebuilt — 6 animated, realistic football scenarios with A/B/C choices instead of pass/shoot/dribble:
-   1. **1v1 With the Keeper** (striker through on goal, GK rushing out)
-   2. **Winger to the Byline** (cross / cut-in / cutback)
-   3. **Defender Last Man** (offside trap / drop / sprint back)
-   4. **Counter-attack Midfielder** (through-ball / switch / slow it)
-   5. **Free Kick — Edge of Box** (whip in / shoot / short)
-   6. **High Press Trigger** (press CB / cut lane / drop)
-   - Phaser tweens animate player runs over 1.4–1.8s before pause + question overlay
-   - Realistic pitch with both goal areas, 18-yard boxes, 6-yard boxes, penalty spots, centre circle, attack-direction arrow
-   - Kit colours: red home / black opponent / yellow keeper / white teammate
-- ✅ **Backend `canonical_club()`** — `south london fc` → `South London FC`; preserves FC/AFC/AC/CF/U12/U-12/U18 + any user-supplied all-caps acronym
-- ✅ **Slowapi rate limiting** with custom key_func reading `X-Forwarded-For` (works behind k8s ingress) + SlowAPIMiddleware: `/score` 20/min, `/contact` 10/min, `/club-claim` 5/min — verified 5/25 success on burst test
-- ✅ **`POST /api/club-claim`** new endpoint — captures B2B leads (contactName, email, role, squadSize, message)
-- ✅ **`POST /api/score` returns `isNewClub` flag** — true if first score for that canonical club
-- ✅ **ClubClaimModal** triggered when demo completes for a brand-new club; converts arbitrary-club input into qualified pilot leads (coach email + role + squad size)
+### V1.4 changes (this iteration)
+- ✅ **Reaction Game** — 5 rounds (down from 10), random green-circle position anywhere on the pitch; false-start detection kept
+- ✅ **Decision Game** — rebuilt vertically with proper football camera (goal at TOP, attack runs UPWARD, defenders sit between attackers and the top goal); 4 user-specified scenarios with realistic tactics + offside line drawn at the second-last defender:
+   1. **Channel Runner** — striker bends curved run from onside through the LB/LCB channel (correct: through-ball into channel)
+   2. **Wide Overload** — opposition full-back engages ball, your overlap arrives behind, CBs hold proper depth (correct: slip to overlapping LB)
+   3. **Defensive Shape** — compact back four, striker starts onside and bursts depth (correct: low through-ball before line resets)
+   4. **Winger in the Box** — three runners occupy near-post / spot / far-post, winger at byline (correct: whip across 6-yard line for near-post)
+- ✅ Offside line rendered as **red dashed horizontal line** at the deepest outfield defender's y-coordinate; properly excluded from box-scenario where it's not relevant
+- ✅ All 4 scenarios respect offside law — runners start onside before breaking the line
+- ✅ Goal area drawn at top: posts, 18-yard box, 6-yard box, penalty spot, D-arc; attack-direction arrow on left edge
+
+### V1.3 changes
+- ✅ **Pricing — 5 tiers**: Free £0, Individual Player £19/mo, Team £99/mo (Most Popular), School Contact-for-price, Academy Contact-for-price
+- ✅ Backend `canonical_club()` normalisation
+- ✅ Slowapi rate limiting with X-Forwarded-For key func + SlowAPIMiddleware
+- ✅ `POST /api/score` returns `isNewClub` flag
+- ✅ `POST /api/club-claim` endpoint for B2B lead capture
+- ✅ ClubClaimModal triggered when demo completes for a brand-new club
+- ✅ Curated top-15 seed leaderboard; user's row highlighted with **YOU** badge after submission; leaderboard auto-refreshes after each score saves
 
 ### V1.2 (theme + free-text club)
-- ✅ Atleticos red/black/white football-club editorial theme; Sofia Sans Extra Condensed display font
-- ✅ Free-text Player name + Age + Club input on Demo / Reaction / Decision pages
-- ✅ Hero: stadium photo + red-box-highlighted "quicker." + italic red "smarter."
+- ✅ Atleticos red/black/white football-club editorial theme; Sofia Sans Extra Condensed
+- ✅ Free-text Player name + Age + Club input; Hero with stadium photo
 
 ### V1 (original)
 - ✅ FastAPI backend, React + Phaser 4 frontend
 - ✅ Home / Pricing / Contact / Demo / Leaderboard / Game pages
-- ✅ Reaction game (10 rounds, false-start detection, ms precision)
 - ✅ All elements use `data-testid`
 
 ## P0 / P1 / P2 Backlog

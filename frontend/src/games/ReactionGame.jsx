@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 
-const TOTAL_ROUNDS = 10;
+const TOTAL_ROUNDS = 5;
 const MIN_WAIT = 900;
-const MAX_WAIT = 2400;
-const FALSE_START_PENALTY = 1000; // ms equivalent added
+const MAX_WAIT = 2200;
+const TARGET_RADIUS = 36;
+const FALSE_START_PENALTY = 50; // ms added per false start to avg
 
 /**
- * ReactionGame — 10 rounds. Wait for the green pulse, click as fast as you can.
- * Clicking before the pulse counts as a false start.
+ * ReactionGame — 5 rounds. Wait for a green circle to flash at a random
+ * position on the pitch, then tap it as fast as you can.
  *
- * Props:
- *   onComplete({ score, reactionTime, falseStarts })
+ * Props: onComplete({ score, reactionTime, falseStarts })
  */
 export default function ReactionGame({ onComplete }) {
     const containerRef = useRef(null);
     const gameRef = useRef(null);
-    const [round, setRound] = useState(0); // 0..TOTAL_ROUNDS
+    const [round, setRound] = useState(0);
     const [lastTime, setLastTime] = useState(null);
     const [avg, setAvg] = useState(null);
     const [falseStarts, setFalseStarts] = useState(0);
@@ -27,7 +27,7 @@ export default function ReactionGame({ onComplete }) {
         completedRef.current = false;
 
         const state = {
-            phase: "idle", // idle | waiting | go | clicked
+            phase: "idle", // idle | waiting | go | shown | done
             waitTimer: null,
             startGoTime: 0,
             times: [],
@@ -42,55 +42,82 @@ export default function ReactionGame({ onComplete }) {
                 const h = this.scale.height;
 
                 // Pitch background
-                this.bg = this.add.rectangle(w / 2, h / 2, w, h, 0x121418);
+                this.bg = this.add.rectangle(w / 2, h / 2, w, h, 0x0e2d1a);
+                // Pitch stripes for atmosphere
+                for (let i = 0; i < 8; i++) {
+                    const stripe = this.add.rectangle(
+                        (w / 8) * (i + 0.5),
+                        h / 2,
+                        w / 8,
+                        h,
+                        i % 2 === 0 ? 0x10331f : 0x0a2615
+                    );
+                    stripe.setAlpha(0.55);
+                }
 
-                // Center circle
-                this.target = this.add.circle(w / 2, h / 2, Math.min(w, h) * 0.28, 0x6b7280);
-                this.target.setStrokeStyle(2, 0xffffff, 0.3);
-                this.target.setInteractive({ useHandCursor: true });
+                // Header text in centre
+                this.title = this.add
+                    .text(w / 2, h / 2 - 18, "TAP TO START", {
+                        fontFamily: "'Sofia Sans Extra Condensed', 'Barlow Condensed', sans-serif",
+                        fontSize: "48px",
+                        fontStyle: "900",
+                        color: "#FFFFFF",
+                    })
+                    .setOrigin(0.5);
 
-                // Halo
-                this.halo = this.add.circle(w / 2, h / 2, Math.min(w, h) * 0.34, 0xffffff, 0);
-                this.halo.setStrokeStyle(1, 0xffffff, 0.1);
-
-                // Center text
-                this.titleText = this.add.text(w / 2, h / 2 - 12, "TAP TO START", {
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: "44px",
-                    fontStyle: "900",
-                    color: "#FFFFFF",
-                }).setOrigin(0.5);
-                this.subText = this.add.text(w / 2, h / 2 + 30, "10 ROUNDS · WAIT FOR GREEN", {
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: "12px",
-                    color: "#FFFFFF66",
-                    letterSpacing: "0.2em",
-                }).setOrigin(0.5);
+                this.subtitle = this.add
+                    .text(w / 2, h / 2 + 26, `${TOTAL_ROUNDS} ROUNDS · TAP THE GREEN CIRCLE`, {
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: "12px",
+                        color: "#FFFFFF80",
+                    })
+                    .setOrigin(0.5);
 
                 // HUD
-                this.hudRound = this.add.text(24, 18, `ROUND  00 / ${String(TOTAL_ROUNDS).padStart(2, "0")}`, {
+                this.hudRound = this.add.text(20, 18, `ROUND  00 / ${String(TOTAL_ROUNDS).padStart(2, "0")}`, {
                     fontFamily: "'JetBrains Mono', monospace",
                     fontSize: "12px",
-                    color: "#FFFFFF99",
+                    color: "#FFFFFFAA",
                 });
-                this.hudLast = this.add.text(w - 24, 18, "LAST  ---", {
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: "12px",
-                    color: "#FFFFFF99",
-                }).setOrigin(1, 0);
+                this.hudLast = this.add
+                    .text(w - 20, 18, "LAST  ---", {
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: "12px",
+                        color: "#FFFFFFAA",
+                    })
+                    .setOrigin(1, 0);
 
-                // Click handler on entire scene (so false starts mid-wait are caught)
-                this.input.on("pointerdown", () => this._handleClick());
+                // Hidden target circle (will be repositioned and shown in 'go' phase)
+                this.target = this.add.circle(-100, -100, TARGET_RADIUS, 0x23883c);
+                this.target.setStrokeStyle(3, 0xffffff, 0.9);
+                this.target.setVisible(false);
 
-                this._handleClick = () => {
+                this.targetGlow = this.add.circle(-100, -100, TARGET_RADIUS + 14, 0x23883c, 0.0);
+                this.targetGlow.setStrokeStyle(2, 0x23883c, 0.5);
+                this.targetGlow.setVisible(false);
+
+                this.input.on("pointerdown", (pointer) => this._handleClick(pointer));
+
+                this._handleClick = (pointer) => {
                     if (state.phase === "idle") {
                         this._beginRound();
-                    } else if (state.phase === "waiting") {
+                        return;
+                    }
+                    if (state.phase === "waiting") {
                         // FALSE START
                         state.falseStarts += 1;
                         setFalseStarts(state.falseStarts);
                         this._showFalseStart();
-                    } else if (state.phase === "go") {
+                        return;
+                    }
+                    if (state.phase === "go") {
+                        // Did the click land on the target?
+                        const dx = pointer.x - this.target.x;
+                        const dy = pointer.y - this.target.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > TARGET_RADIUS + 12) {
+                            // miss — but still register reaction time so user feels feedback
+                        }
                         const t = this.time.now - state.startGoTime;
                         state.times.push(t);
                         setLastTime(t);
@@ -100,66 +127,73 @@ export default function ReactionGame({ onComplete }) {
 
                 this._beginRound = () => {
                     state.phase = "waiting";
-                    this.target.setFillStyle(0xe63946);
-                    this.titleText.setText("WAIT…");
-                    this.titleText.setColor("#FFFFFF");
-                    this.subText.setText("DON'T JUMP THE GUN");
-                    this.subText.setColor("#FFFFFF55");
+                    this.title.setText("WAIT…");
+                    this.title.setColor("#FFFFFF");
+                    this.subtitle.setText("DON'T JUMP THE GUN");
+                    this.subtitle.setColor("#FFFFFF66");
+                    this.target.setVisible(false);
+                    this.targetGlow.setVisible(false);
                     const delay = Phaser.Math.Between(MIN_WAIT, MAX_WAIT);
                     state.waitTimer = this.time.delayedCall(delay, () => {
+                        if (state.phase !== "waiting") return;
+                        // Pick a random position with safe margins
+                        const margin = TARGET_RADIUS + 24;
+                        const tx = Phaser.Math.Between(margin, w - margin);
+                        const ty = Phaser.Math.Between(margin + 40, h - margin);
                         state.phase = "go";
                         state.startGoTime = this.time.now;
-                        this.target.setFillStyle(0x23883c);
-                        this.titleText.setText("TAP!");
-                        this.titleText.setColor("#23883C");
-                        this.subText.setText("");
-                        // pulse
+                        this.target.setPosition(tx, ty);
+                        this.targetGlow.setPosition(tx, ty);
+                        this.target.setVisible(true);
+                        this.targetGlow.setVisible(true);
+                        this.title.setText("TAP IT!");
+                        this.title.setColor("#23883C");
+                        this.subtitle.setText("");
+                        // Pulse halo
                         this.tweens.add({
-                            targets: this.halo,
-                            scale: 1.15,
-                            alpha: 0.0,
-                            duration: 600,
+                            targets: this.targetGlow,
+                            scale: 1.6,
+                            alpha: 0,
+                            duration: 700,
                             ease: "Cubic.Out",
                             onStart: () => {
-                                this.halo.setStrokeStyle(2, 0x23883c, 0.7);
-                                this.halo.setScale(1);
+                                this.targetGlow.setScale(1);
+                                this.targetGlow.setAlpha(0.55);
                             },
+                            repeat: -1,
                         });
                     });
                 };
 
                 this._showSuccess = (ms) => {
                     state.phase = "shown";
-                    this.target.setFillStyle(0xdc1e28);
-                    this.titleText.setText(`${Math.round(ms)} MS`);
-                    this.titleText.setColor("#FFFFFF");
-                    this.subText.setText(state.round < TOTAL_ROUNDS - 1 ? "TAP FOR NEXT ROUND" : "FINAL ROUND COMPLETE");
-                    this.subText.setColor("#FFFFFFAA");
-
+                    this.tweens.killTweensOf(this.targetGlow);
+                    this.target.setVisible(false);
+                    this.targetGlow.setVisible(false);
+                    this.title.setText(`${Math.round(ms)} MS`);
+                    this.title.setColor("#FFFFFF");
                     state.round += 1;
                     setRound(state.round);
                     this.hudRound.setText(
                         `ROUND  ${String(state.round).padStart(2, "0")} / ${String(TOTAL_ROUNDS).padStart(2, "0")}`
                     );
                     this.hudLast.setText(`LAST  ${Math.round(ms)}MS`);
-
                     if (state.round >= TOTAL_ROUNDS) {
                         this._finishGame();
                     } else {
-                        // Next round will start on next click
+                        this.subtitle.setText("TAP ANYWHERE FOR NEXT ROUND");
+                        this.subtitle.setColor("#FFFFFFAA");
                         state.phase = "idle";
                     }
                 };
 
                 this._showFalseStart = () => {
-                    state.phase = "shown";
                     this.cameras.main.flash(220, 230, 57, 70);
-                    this.target.setFillStyle(0xe63946);
-                    this.titleText.setText("FALSE START");
-                    this.titleText.setColor("#E63946");
-                    this.subText.setText("TAP TO RETRY THIS ROUND");
-                    this.subText.setColor("#E6394699");
                     if (state.waitTimer) state.waitTimer.remove();
+                    this.title.setText("FALSE START");
+                    this.title.setColor("#E63946");
+                    this.subtitle.setText("TAP TO RETRY THIS ROUND");
+                    this.subtitle.setColor("#E6394999");
                     state.phase = "idle";
                 };
 
@@ -167,14 +201,15 @@ export default function ReactionGame({ onComplete }) {
                     state.phase = "done";
                     const sum = state.times.reduce((a, b) => a + b, 0);
                     const avgT = state.times.length ? sum / state.times.length : 0;
-                    const adjusted = avgT + state.falseStarts * FALSE_START_PENALTY * 0.05; // light penalty into avg
-                    // Score: 1000 if avg <= 200ms, 0 if avg >= 600ms (linear)
+                    const adjusted = avgT + state.falseStarts * FALSE_START_PENALTY;
+                    // Score: 1000 if avg <= 200ms, 0 if avg >= 600ms
                     const clamped = Math.max(200, Math.min(600, adjusted));
                     const sc = Math.round(((600 - clamped) / 400) * 1000);
                     setAvg(avgT);
-                    this.titleText.setText(`${Math.round(avgT)} MS`);
-                    this.subText.setText("DRILL COMPLETE");
-                    this.subText.setColor("#23883C");
+                    this.title.setText(`${Math.round(avgT)} MS`);
+                    this.title.setColor("#FFFFFF");
+                    this.subtitle.setText("DRILL COMPLETE");
+                    this.subtitle.setColor("#23883C");
                     if (!completedRef.current && typeof onComplete === "function") {
                         completedRef.current = true;
                         onComplete({
@@ -189,7 +224,7 @@ export default function ReactionGame({ onComplete }) {
             },
         };
 
-        const config = {
+        const game = new Phaser.Game({
             type: Phaser.AUTO,
             parent: containerRef.current,
             backgroundColor: "#0A0A0A",
@@ -200,9 +235,7 @@ export default function ReactionGame({ onComplete }) {
                 height: 460,
             },
             scene: SCENE,
-        };
-
-        const game = new Phaser.Game(config);
+        });
         gameRef.current = game;
 
         return () => {

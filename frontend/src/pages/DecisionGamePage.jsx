@@ -35,9 +35,9 @@ export default function DecisionGamePage() {
                 Decision Game
             </h1>
             <p className="mt-3 max-w-xl text-sm text-white/60">
-                Freeze-frame scenarios. Defender closing, teammate available,
-                pressure rising. Pick the right action — pass, shoot, or
-                dribble.
+                4 animated football scenarios — channel runs, wide overloads,
+                defensive shape, box arrivals. Watch the play unfold, then
+                pick A / B / C.
             </p>
 
             {!started && (
