@@ -9,8 +9,9 @@ Build a fully working browser-based football cognitive training platform called 
 ## Architecture
 
 - **Backend:** FastAPI + Motor (async MongoDB) at `/api/*`
+  - Modular layout (V1.5): `server.py` (thin entrypoint), `core.py` (db + limiter + logger), `routes/` (meta, contact, score, club_claim, leaderboard), `models/` (contact, score, club), `services/` (clubs canonicalization, seed)
 - **Frontend:** React 19 + Phaser.js 4 + Tailwind + Shadcn/UI + framer-motion
-- **DB:** MongoDB (collections: `contacts`, `scores`)
+- **DB:** MongoDB (collections: `contacts`, `scores`, `club_claims`)
 
 ## User Personas
 
@@ -33,9 +34,15 @@ Build a fully working browser-based football cognitive training platform called 
 - Demo mode under 60s flow: Reaction → Decision → Leaderboard
 - Dark sports-tech UI, Barlow Condensed + JetBrains Mono
 
-## What's Implemented (2026-02 → 2026-05 — V1 → V1.4)
+## What's Implemented (2026-02 → 2026-05 — V1 → V1.5)
 
-### V1.4 changes (this iteration)
+### V1.5 changes (this iteration, 2026-05-05)
+- ✅ **Advisory rename (P0)** — Decision game scenario options are now flagged with `recommended: true` (was `correct: true`). All 4 scenarios updated; `|| o.correct` fallback removed from `DecisionGame.jsx`. `onComplete` payload now includes `matchesCoach` count.
+- ✅ **DecisionGamePage** standalone results now shows **"Aligned with coach"** (was "Correct") with `matchesCoach/total`.
+- ✅ **Backend refactor** — monolithic `server.py` (383 lines) split into `routes/` (5 routers), `models/` (3 modules), `services/` (clubs + seed), `core.py` (shared infra). `server.py` is now a 50-line thin entrypoint. Zero API contract changes — all endpoints identical.
+- ✅ **Test DB cleanup** — removed 43 stale TEST_* rows + 9 test contacts + 10 test club_claims accumulated across iterations.
+
+### V1.4 changes
 - ✅ **Reaction Game** — 5 rounds (down from 10), random green-circle position anywhere on the pitch; false-start detection kept
 - ✅ **Decision Game** — rebuilt vertically with proper football camera (goal at TOP, attack runs UPWARD, defenders sit between attackers and the top goal); 4 user-specified scenarios with realistic tactics + offside line drawn at the second-last defender:
    1. **Channel Runner** — striker bends curved run from onside through the LB/LCB channel (correct: through-ball into channel)
