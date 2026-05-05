@@ -25,6 +25,8 @@ function rankBadge(idx) {
 export default function Leaderboard({
     defaultGameType = "reaction",
     embed = false,
+    refreshKey = 0,
+    highlightName = null,
 }) {
     const [gameType, setGameType] = useState(defaultGameType);
     const [club, setClub] = useState("All");
@@ -61,7 +63,24 @@ export default function Leaderboard({
         return () => {
             active = false;
         };
-    }, [gameType, club, period]);
+    }, [gameType, club, period, refreshKey]);
+
+    // When refreshKey changes, also re-fetch the dynamic club options so a
+    // freshly-submitted club shows up in the filter dropdown.
+    useEffect(() => {
+        if (refreshKey === 0) return;
+        let active = true;
+        listClubs()
+            .then((data) => {
+                if (!active) return;
+                const names = (data || []).map((c) => c.name).filter(Boolean);
+                setClubOptions(["All", ...names]);
+            })
+            .catch(() => {});
+        return () => {
+            active = false;
+        };
+    }, [refreshKey]);
 
     return (
         <div data-testid="leaderboard-component" className="w-full">
@@ -161,41 +180,58 @@ export default function Leaderboard({
                 )}
 
                 {!loading &&
-                    rows.map((r, idx) => (
-                        <div
-                            key={r.id}
-                            data-testid={`leaderboard-row-${idx}`}
-                            className={[
-                                "grid grid-cols-12 items-center border-b border-white/5 px-4 py-3 transition-colors hover:bg-white/[0.03] md:px-6",
-                                idx < 3 ? "bg-white/[0.015]" : "",
-                            ].join(" ")}
-                        >
+                    rows.map((r, idx) => {
+                        const isMe =
+                            highlightName &&
+                            r.name &&
+                            r.name.trim().toLowerCase() === highlightName.trim().toLowerCase();
+                        return (
                             <div
+                                key={r.id}
+                                data-testid={`leaderboard-row-${idx}`}
                                 className={[
-                                    "col-span-1 font-mono text-base font-bold",
-                                    rankBadge(idx),
+                                    "grid grid-cols-12 items-center border-b px-4 py-3 transition-colors md:px-6",
+                                    isMe
+                                        ? "border-ps-red/40 bg-ps-red/10 hover:bg-ps-red/15"
+                                        : "border-white/5 hover:bg-white/[0.03]",
+                                    !isMe && idx < 3 ? "bg-white/[0.015]" : "",
                                 ].join(" ")}
                             >
-                                {String(idx + 1).padStart(2, "0")}
-                            </div>
-                            <div className="col-span-4">
-                                <div className="font-heading text-base font-semibold uppercase tracking-wide text-white">
-                                    {r.name}
+                                <div
+                                    className={[
+                                        "col-span-1 font-mono text-base font-bold",
+                                        rankBadge(idx),
+                                    ].join(" ")}
+                                >
+                                    {String(idx + 1).padStart(2, "0")}
                                 </div>
-                                <div className="text-[10px] uppercase tracking-[0.18em] text-white/40 md:hidden">
+                                <div className="col-span-4">
+                                    <div className="flex items-center gap-2 font-heading text-base font-semibold uppercase tracking-wide text-white">
+                                        {r.name}
+                                        {isMe && (
+                                            <span
+                                                data-testid={`leaderboard-row-${idx}-you`}
+                                                className="border border-ps-red bg-ps-red px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-white"
+                                            >
+                                                You
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="text-[10px] uppercase tracking-[0.18em] text-white/40 md:hidden">
+                                        {r.club}
+                                    </div>
+                                </div>
+                                <div className="col-span-4 hidden font-body text-sm text-white/60 md:block">
                                     {r.club}
                                 </div>
+                                <div className="col-span-3 text-right font-mono text-base font-bold text-white md:col-span-3">
+                                    {gameType === "reaction"
+                                        ? `${r.reactionTime?.toFixed?.(0) ?? "—"} ms`
+                                        : `${r.score} pts`}
+                                </div>
                             </div>
-                            <div className="col-span-4 hidden font-body text-sm text-white/60 md:block">
-                                {r.club}
-                            </div>
-                            <div className="col-span-3 text-right font-mono text-base font-bold text-white md:col-span-3">
-                                {gameType === "reaction"
-                                    ? `${r.reactionTime?.toFixed?.(0) ?? "—"} ms`
-                                    : `${r.score} pts`}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
             </div>
 
             {!embed && (

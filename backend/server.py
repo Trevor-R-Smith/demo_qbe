@@ -289,49 +289,75 @@ async def get_leaderboard(
 
 
 # --- Seed sample data --------------------------------------------------------
+# Curated top-15 reactions (lower ms = better) and top-15 decisions (higher = better).
+_SEED_REACTION = [
+    ("Marcus J.",   "South London FC",  17,  218, 935),
+    ("Kai S.",      "Elite Academy",    19,  226, 920),
+    ("Harvey D.",   "Croydon Juniors",  16,  231, 908),
+    ("Noah P.",     "South London FC",  18,  238, 897),
+    ("Ethan W.",    "Elite Academy",    15,  245, 885),
+    ("Leo A.",      "Croydon Juniors",  17,  253, 872),
+    ("Finley G.",   "South London FC",  16,  261, 858),
+    ("Oscar T.",    "Elite Academy",    18,  270, 842),
+    ("Reece M.",    "Croydon Juniors",  15,  279, 826),
+    ("Jamal R.",    "South London FC",  14,  288, 810),
+    ("Theo C.",     "Elite Academy",    17,  298, 792),
+    ("Daniel L.",   "Croydon Juniors",  19,  308, 773),
+    ("Aaron K.",    "South London FC",  16,  320, 750),
+    ("Liam O.",     "Elite Academy",    16,  332, 728),
+    ("Tyrell B.",   "Croydon Juniors",  18,  345, 703),
+]
+
+_SEED_DECISION = [
+    ("Marcus J.",   "South London FC",  17,  98),
+    ("Finley G.",   "South London FC",  16,  96),
+    ("Tyrell B.",   "Croydon Juniors",  18,  94),
+    ("Noah P.",     "South London FC",  18,  92),
+    ("Daniel L.",   "Croydon Juniors",  19,  90),
+    ("Kai S.",      "Elite Academy",    19,  88),
+    ("Harvey D.",   "Croydon Juniors",  16,  86),
+    ("Ethan W.",    "Elite Academy",    15,  84),
+    ("Leo A.",      "Croydon Juniors",  17,  82),
+    ("Theo C.",     "Elite Academy",    17,  80),
+    ("Oscar T.",    "Elite Academy",    18,  76),
+    ("Jamal R.",    "South London FC",  14,  72),
+    ("Aaron K.",    "South London FC",  16,  68),
+    ("Reece M.",    "Croydon Juniors",  15,  64),
+    ("Liam O.",     "Elite Academy",    16,  60),
+]
+
+
 async def _seed_sample_data():
     existing = await db.scores.count_documents({})
     if existing > 0:
         logger.info("Skipping seed — %d scores already present.", existing)
         return
 
-    sample_names = [
-        "Marcus J.", "Liam O.", "Aaron K.", "Tyrell B.", "Jamal R.",
-        "Ethan W.", "Noah P.", "Kai S.", "Reece M.", "Daniel L.",
-        "Oscar T.", "Finley G.", "Harvey D.", "Theo C.", "Leo A.",
-    ]
-
-    sample_scores: List[dict] = []
     now = datetime.now(timezone.utc)
+    sample_scores: List[dict] = []
 
-    # Reaction scores: lower is better (ms)
-    for i in range(20):
-        created = now - timedelta(days=random.randint(0, 14), hours=random.randint(0, 23))
+    for name, club, age, rt, score in _SEED_REACTION:
+        created = now - timedelta(days=random.randint(1, 14), hours=random.randint(0, 23))
         sample_scores.append({
             "id": str(uuid.uuid4()),
-            "name": random.choice(sample_names),
-            "club": random.choice(CLUBS),
+            "name": name, "club": club, "age": age,
             "gameType": "reaction",
-            "score": random.randint(700, 980),  # composite score out of 1000
-            "reactionTime": round(random.uniform(220, 410), 1),
-            "createdAt": _iso(created),
+            "score": score, "reactionTime": float(rt),
+            "createdAt": _iso(created), "seeded": True,
         })
 
-    # Decision scores: higher is better (out of 100)
-    for i in range(20):
-        created = now - timedelta(days=random.randint(0, 14), hours=random.randint(0, 23))
+    for name, club, age, score in _SEED_DECISION:
+        created = now - timedelta(days=random.randint(1, 14), hours=random.randint(0, 23))
         sample_scores.append({
             "id": str(uuid.uuid4()),
-            "name": random.choice(sample_names),
-            "club": random.choice(CLUBS),
+            "name": name, "club": club, "age": age,
             "gameType": "decision",
-            "score": random.randint(55, 100),
-            "reactionTime": None,
-            "createdAt": _iso(created),
+            "score": score, "reactionTime": None,
+            "createdAt": _iso(created), "seeded": True,
         })
 
     await db.scores.insert_many(sample_scores)
-    logger.info("Seeded %d sample scores.", len(sample_scores))
+    logger.info("Seeded %d curated scores.", len(sample_scores))
 
 
 # --- Wire-up -----------------------------------------------------------------

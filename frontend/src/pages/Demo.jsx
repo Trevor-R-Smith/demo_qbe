@@ -26,6 +26,7 @@ export default function Demo() {
     const [canonicalClub, setCanonicalClub] = useState("");
     const [claimOpen, setClaimOpen] = useState(false);
     const [claimShown, setClaimShown] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const stepIdx = STEPS.findIndex((s) => s.key === step);
 
@@ -43,6 +44,7 @@ export default function Demo() {
             });
             if (res?.club) setCanonicalClub(res.club);
             if (res?.isNewClub) setIsNewClub(true);
+            setRefreshKey((k) => k + 1);
             toast.success(
                 gameType === "reaction"
                     ? `Reaction saved (${Math.round(payload.reactionTime)}ms)`
@@ -331,7 +333,12 @@ export default function Demo() {
                             </h3>
                             <p className="ps-label mt-1">Filter by club or week</p>
                             <div className="mt-6">
-                                <Leaderboard defaultGameType="reaction" embed />
+                                <Leaderboard
+                                    defaultGameType="reaction"
+                                    embed
+                                    refreshKey={refreshKey}
+                                    highlightName={name}
+                                />
                             </div>
                         </div>
                     </div>
