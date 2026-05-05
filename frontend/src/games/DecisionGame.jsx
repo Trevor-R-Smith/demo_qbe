@@ -61,19 +61,17 @@ const SCENARIOS = [
             {
                 key: "A",
                 label: "Slide a through-ball into the channel",
-                correct: true,
+                recommended: true,
                 reason: "He started behind the back line and bent his run perfectly. Ball into the corridor between LB and LCB — he runs onto it the right side of the offside trap.",
             },
             {
                 key: "B",
                 label: "Square pass to the right winger",
-                correct: false,
                 reason: "Winger is wide but stationary — square balls don't beat the line. Striker's curved run is the higher-value option.",
             },
             {
                 key: "C",
                 label: "Hold the ball and let CMs join",
-                correct: false,
                 reason: "Kills the timing. The runner timed his bend off your body shape — wait too long and the LCB recovers the channel.",
             },
         ],
