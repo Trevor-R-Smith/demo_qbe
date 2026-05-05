@@ -22,6 +22,7 @@ export default function Demo() {
     const [age, setAge] = useState("");
     const [reactionResult, setReactionResult] = useState(null);
     const [decisionResult, setDecisionResult] = useState(null);
+    const [coachNotes, setCoachNotes] = useState([]);
     const [isNewClub, setIsNewClub] = useState(false);
     const [canonicalClub, setCanonicalClub] = useState("");
     const [claimOpen, setClaimOpen] = useState(false);
@@ -55,13 +56,14 @@ export default function Demo() {
         }
     };
 
-    const handleReactionDone = (result) => {
+    const handleReactionDone = async (result) => {
         setReactionResult(result);
-        submit("reaction", result);
+        await submit("reaction", result);
     };
-    const handleDecisionDone = (result) => {
+    const handleDecisionDone = async (result) => {
         setDecisionResult(result);
-        submit("decision", result);
+        if (Array.isArray(result.decisions)) setCoachNotes(result.decisions);
+        await submit("decision", result);
     };
 
     // When we land on the leaderboard step with a new club, show the claim modal once.
@@ -236,8 +238,8 @@ export default function Demo() {
                             </button>
                         </div>
                         <ReactionGame
-                            onComplete={(r) => {
-                                handleReactionDone(r);
+                            onComplete={async (r) => {
+                                await handleReactionDone(r);
                                 setStep("decision");
                             }}
                         />
@@ -262,8 +264,8 @@ export default function Demo() {
                             </button>
                         </div>
                         <DecisionGame
-                            onComplete={(r) => {
-                                handleDecisionDone(r);
+                            onComplete={async (r) => {
+                                await handleDecisionDone(r);
                                 setStep("leaderboard");
                             }}
                         />
@@ -307,7 +309,7 @@ export default function Demo() {
                                 </div>
                                 <p className="mt-2 text-xs text-white/45">
                                     {decisionResult
-                                        ? `Correct: ${decisionResult.correct}/${decisionResult.total}`
+                                        ? `Avg ${Math.round(decisionResult.avgTime || 0)}ms across ${decisionResult.total} scenarios`
                                         : "Skipped"}
                                 </p>
                             </div>
@@ -327,15 +329,61 @@ export default function Demo() {
                             </div>
                         </div>
 
+                        {coachNotes.length > 0 && (
+                            <div className="mt-12" data-testid="coach-notes-panel">
+                                <p className="ps-label text-ps-red">Coach's Notes</p>
+                                <h3 className="ps-section-title mt-2 text-2xl text-white md:text-3xl">
+                                    Advisory feedback on your decisions.
+                                </h3>
+                                <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    {coachNotes.map((d, i) => {
+                                        const matchesPick =
+                                            d.recommendedKey && d.recommendedKey === d.picked;
+                                        return (
+                                            <div
+                                                key={d.scenarioId}
+                                                data-testid={`coach-note-${i}`}
+                                                className="ps-card p-5"
+                                                style={{ borderLeft: "3px solid #DC1E28" }}
+                                            >
+                                                <p className="ps-label">
+                                                    Scenario {i + 1} · {d.scenarioTitle}
+                                                </p>
+                                                <p className="mt-3 font-display text-xs uppercase tracking-[0.2em] text-white/45">
+                                                    Your call · {d.picked} — {d.pickedLabel}
+                                                </p>
+                                                <p className="mt-2 font-body text-sm leading-relaxed text-white/80">
+                                                    {d.pickedReason}
+                                                </p>
+                                                {!matchesPick && d.recommendedLabel && (
+                                                    <div className="mt-4 border-t border-white/8 pt-3">
+                                                        <p className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-ps-turf">
+                                                            Coach's preferred call · {d.recommendedKey} — {d.recommendedLabel}
+                                                        </p>
+                                                        <p className="mt-2 font-body text-xs leading-relaxed text-white/55">
+                                                            {d.recommendedReason}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="mt-12">
                             <h3 className="font-heading text-2xl font-bold uppercase text-white">
                                 Live Leaderboard
                             </h3>
-                            <p className="ps-label mt-1">Filter by club or week</p>
+                            <p className="ps-label mt-1">
+                                Your score is live · filter by club or week
+                            </p>
                             <div className="mt-6">
                                 <Leaderboard
                                     defaultGameType="reaction"
                                     embed
+                                    limit={30}
                                     refreshKey={refreshKey}
                                     highlightName={name}
                                 />

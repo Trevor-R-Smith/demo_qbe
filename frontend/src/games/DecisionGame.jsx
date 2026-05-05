@@ -518,11 +518,21 @@ export default function DecisionGame({ onComplete }) {
     const handlePick = (opt) => {
         if (phase !== "deciding") return;
         const ms = Date.now() - decideAtRef.current;
-        const correct = !!opt.correct;
-        const entry = { picked: opt.key, correct, ms };
+        const recommended = sc.options.find((o) => o.recommended || o.correct);
+        const entry = {
+            scenarioId: sc.id,
+            scenarioTitle: sc.title,
+            picked: opt.key,
+            pickedLabel: opt.label,
+            pickedReason: opt.reason,
+            recommendedKey: recommended?.key,
+            recommendedLabel: recommended?.label,
+            recommendedReason: recommended?.reason,
+            ms,
+        };
         const next = [...results, entry];
         setResults(next);
-        setFeedback({ correct, option: opt, reason: opt.reason, picked: opt.key });
+        setFeedback({ option: opt, picked: opt.key, label: opt.label, reason: opt.reason });
         setPhase("feedback");
 
         setTimeout(() => {
@@ -530,22 +540,26 @@ export default function DecisionGame({ onComplete }) {
                 setIdx(idx + 1);
             } else {
                 setDone(true);
-                const correctCount = next.filter((r) => r.correct).length;
                 const total = SCENARIOS.length;
                 const avgTime = next.reduce((a, b) => a + b.ms, 0) / Math.max(1, next.length);
-                const accuracyScore = (correctCount / total) * 80;
-                const avgClamped = Math.max(800, Math.min(4000, avgTime));
-                const speedScore = ((4000 - avgClamped) / 3200) * 20;
-                const score = Math.round(accuracyScore + speedScore);
+                // Speed-only score (advisory drill — no right/wrong scoring).
+                // 100 when avg <= 800ms, 50 when avg >= 3200ms (linear)
+                const avgClamped = Math.max(800, Math.min(3200, avgTime));
+                const score = Math.round(100 - ((avgClamped - 800) / 2400) * 50);
                 if (!completedRef.current && typeof onComplete === "function") {
                     completedRef.current = true;
-                    onComplete({ score, correct: correctCount, total, avgTime });
+                    onComplete({
+                        score,
+                        total,
+                        avgTime,
+                        decisions: next,
+                    });
                 }
             }
-        }, 2400);
+        }, 2200);
     };
 
-    const correctOption = sc.options.find((o) => o.correct);
+    const recommendedOption = sc.options.find((o) => o.recommended || o.correct);
 
     return (
         <div data-testid="decision-game" className="border border-white/10 bg-ps-surface">
@@ -557,9 +571,9 @@ export default function DecisionGame({ onComplete }) {
                     </span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="ps-label hidden md:inline">Correct</span>
-                    <span className="font-mono text-xs text-ps-turf" data-testid="decision-correct">
-                        {results.filter((r) => r.correct).length} / {results.length}
+                    <span className="ps-label hidden md:inline">Decisions made</span>
+                    <span className="font-mono text-xs text-white" data-testid="decision-count">
+                        {results.length} / {SCENARIOS.length}
                     </span>
                 </div>
             </div>
@@ -605,28 +619,26 @@ export default function DecisionGame({ onComplete }) {
                         className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     >
                         <div
-                            className="mx-6 max-w-lg border p-8 text-center"
-                            style={{
-                                borderColor: feedback.correct ? "#23883C" : "#DC1E28",
-                                background: "#0A0A0A",
-                            }}
+                            className="mx-6 max-w-lg border border-white/15 bg-ps-bg p-8"
+                            style={{ borderLeft: "3px solid #DC1E28" }}
                         >
-                            <p
-                                className={[
-                                    "ps-label",
-                                    feedback.correct ? "text-ps-turf" : "text-ps-red",
-                                ].join(" ")}
-                            >
-                                {feedback.correct ? "✓  Correct read" : "✗  Wrong call"}
-                            </p>
+                            <p className="ps-label text-ps-red">Coach's Note</p>
                             <p className="mt-3 font-display text-xs uppercase tracking-[0.22em] text-white/40">
-                                {feedback.correct
-                                    ? `You chose ${feedback.picked}`
-                                    : `You chose ${feedback.picked} — correct was ${correctOption?.key}: "${correctOption?.label}"`}
+                                Your call: {feedback.picked} — {feedback.label}
                             </p>
                             <p className="mt-4 font-body text-sm leading-relaxed text-white/85">
                                 {feedback.reason}
                             </p>
+                            {recommendedOption && recommendedOption.key !== feedback.picked && (
+                                <p className="mt-4 border-t border-white/8 pt-4 font-body text-xs leading-relaxed text-white/55">
+                                    <span className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">
+                                        Coach's preferred call ·{" "}
+                                    </span>
+                                    <strong className="text-white">{recommendedOption.key} — {recommendedOption.label}</strong>
+                                    <br />
+                                    <span className="text-white/55">{recommendedOption.reason}</span>
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}

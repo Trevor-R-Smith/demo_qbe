@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Select,
     SelectContent,
@@ -27,6 +27,7 @@ export default function Leaderboard({
     embed = false,
     refreshKey = 0,
     highlightName = null,
+    limit = 20,
 }) {
     const [gameType, setGameType] = useState(defaultGameType);
     const [club, setClub] = useState("All");
@@ -34,6 +35,18 @@ export default function Leaderboard({
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [clubOptions, setClubOptions] = useState(["All"]);
+    const meRowRef = useRef(null);
+
+    // Scroll the user's own row into view whenever rows change and we have a name to match.
+    useEffect(() => {
+        if (highlightName && meRowRef.current) {
+            try {
+                meRowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+            } catch (e) {
+                /* noop */
+            }
+        }
+    }, [rows, highlightName]);
 
     useEffect(() => {
         let active = true;
@@ -52,7 +65,7 @@ export default function Leaderboard({
     useEffect(() => {
         let active = true;
         setLoading(true);
-        fetchLeaderboard(gameType, { club, period })
+        fetchLeaderboard(gameType, { club, period, limit })
             .then((data) => {
                 if (active) setRows(data.results || []);
             })
@@ -63,7 +76,7 @@ export default function Leaderboard({
         return () => {
             active = false;
         };
-    }, [gameType, club, period, refreshKey]);
+    }, [gameType, club, period, refreshKey, limit]);
 
     // When refreshKey changes, also re-fetch the dynamic club options so a
     // freshly-submitted club shows up in the filter dropdown.
@@ -188,6 +201,7 @@ export default function Leaderboard({
                         return (
                             <div
                                 key={r.id}
+                                ref={isMe ? meRowRef : undefined}
                                 data-testid={`leaderboard-row-${idx}`}
                                 className={[
                                     "grid grid-cols-12 items-center border-b px-4 py-3 transition-colors md:px-6",
