@@ -4,7 +4,7 @@ Cognitive football training platform. Provides endpoints for contact form,
 game score submission, and leaderboards filtered by club / period.
 """
 
-from fastapi import FastAPI, APIRouter, HTTPException, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Query, Request
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -12,7 +12,11 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import List, Optional, Literal
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
+import re
 import uuid
 import logging
 import random
@@ -26,8 +30,13 @@ mongo_url = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ["DB_NAME"]]
 
-app = FastAPI(title="PlaySharp API", version="1.0.0")
+app = FastAPI(title="PlaySharp API", version="1.2.0")
 api_router = APIRouter(prefix="/api")
+
+# Rate limiter — keyed by client IP (honours X-Forwarded-For via get_remote_address).
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +48,44 @@ logger = logging.getLogger("playsharp")
 # --- Constants ---------------------------------------------------------------
 CLUBS = ["South London FC", "Croydon Juniors", "Elite Academy"]
 GAME_TYPES = {"reaction", "decision"}
+
+# Football abbreviations that should stay uppercase after title-casing.
+_KEEP_UPPER = {
+    "FC", "AFC", "AC", "CF", "SC", "FK", "CFC", "USD", "CD", "CA",
+    "UFC", "UK", "USA", "US", "SK", "BK", "GK", "RB", "EFC", "PE", "JFC",
+}
+
+
+def canonical_club(raw: Optional[str]) -> str:
+    """Normalise a user-submitted club name to a canonical form.
+
+    Rules:
+      - strip outer whitespace, collapse internal whitespace
+      - title-case each word
+      - keep common football abbreviations (FC, AFC, AC, ...) uppercase
+      - keep age-group codes (U12, U-12, U21) uppercase
+      - preserve hyphens in compound words
+    """
+    name = re.sub(r"\s+", " ", (raw or "")).strip()
+    if not name:
+        return ""
+
+    def _cap_token(word: str) -> str:
+        if not word:
+            return word
+        upper = word.upper()
+        if upper in _KEEP_UPPER:
+            return upper
+        if re.fullmatch(r"U-?\d+", upper):
+            return upper
+        return word[:1].upper() + word[1:].lower()
+
+    def _cap(word: str) -> str:
+        if "-" in word:
+            return "-".join(_cap_token(p) for p in word.split("-"))
+        return _cap_token(word)
+
+    return " ".join(_cap(w) for w in name.split(" "))
 
 
 # --- Models ------------------------------------------------------------------
@@ -80,6 +127,32 @@ class Score(BaseModel):
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+class ScoreResponse(Score):
+    isNewClub: bool = False
+
+
+class ClubClaimCreate(BaseModel):
+    club: str = Field(min_length=1, max_length=120)
+    contactName: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    role: str = Field(min_length=1, max_length=60)
+    squadSize: Optional[int] = Field(default=None, ge=1, le=2000)
+    message: Optional[str] = Field(default=None, max_length=2000)
+
+
+class ClubClaim(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    club: str
+    contactName: str
+    email: str
+    role: str
+    squadSize: Optional[int] = None
+    message: Optional[str] = None
+    status: str = "new"
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class Club(BaseModel):
     name: str
 
@@ -103,7 +176,7 @@ def _doc_to_score(doc: dict) -> dict:
 # --- Routes ------------------------------------------------------------------
 @api_router.get("/")
 async def root():
-    return {"app": "PlaySharp", "motto": "Think quicker. Move smarter.", "version": "1.0.0"}
+    return {"app": "PlaySharp", "motto": "Think quicker. Move smarter.", "version": "1.2.0"}
 
 
 @api_router.get("/clubs", response_model=List[Club])
@@ -115,7 +188,8 @@ async def list_clubs():
 
 
 @api_router.post("/contact", response_model=Contact, status_code=201)
-async def create_contact(payload: ContactCreate):
+@limiter.limit("10/minute")
+async def create_contact(request: Request, payload: ContactCreate):
     contact = Contact(**payload.model_dump())
     doc = contact.model_dump()
     doc["createdAt"] = _iso(doc["createdAt"])
@@ -131,20 +205,46 @@ async def list_contacts(limit: int = Query(50, ge=1, le=500)):
     return items
 
 
-@api_router.post("/score", response_model=Score, status_code=201)
-async def create_score(payload: ScoreCreate):
-    club = (payload.club or "").strip()
-    if not club:
+@api_router.post("/score", response_model=ScoreResponse, status_code=201)
+@limiter.limit("20/minute")
+async def create_score(request: Request, payload: ScoreCreate):
+    club_canon = canonical_club(payload.club)
+    if not club_canon:
         raise HTTPException(status_code=400, detail="Club name is required.")
-    if len(club) > 120:
+    if len(club_canon) > 120:
         raise HTTPException(status_code=400, detail="Club name is too long.")
+
+    # Is this a club we haven't seen before?
+    existing = await db.scores.count_documents({"club": club_canon}, limit=1)
+    is_new_club = existing == 0
+
     data = payload.model_dump()
-    data["club"] = club
+    data["club"] = club_canon
     score = Score(**data)
     doc = score.model_dump()
     doc["createdAt"] = _iso(doc["createdAt"])
     await db.scores.insert_one(doc)
-    return score
+    return ScoreResponse(**score.model_dump(), isNewClub=is_new_club)
+
+
+@api_router.post("/club-claim", response_model=ClubClaim, status_code=201)
+@limiter.limit("5/minute")
+async def create_club_claim(request: Request, payload: ClubClaimCreate):
+    data = payload.model_dump()
+    data["club"] = canonical_club(payload.club)
+    claim = ClubClaim(**data)
+    doc = claim.model_dump()
+    doc["createdAt"] = _iso(doc["createdAt"])
+    await db.club_claims.insert_one(doc)
+    logger.info("Club claim: %s by %s <%s>", claim.club, claim.contactName, claim.email)
+    return claim
+
+
+@api_router.get("/club-claim", response_model=List[ClubClaim])
+async def list_club_claims(limit: int = Query(50, ge=1, le=500)):
+    cursor = db.club_claims.find({}, {"_id": 0}).sort("createdAt", -1).limit(limit)
+    items = await cursor.to_list(length=limit)
+    return items
 
 
 @api_router.get("/leaderboard/{game_type}")
@@ -159,7 +259,8 @@ async def get_leaderboard(
 
     query: dict = {"gameType": game_type}
     if club and club != "All":
-        query["club"] = club
+        # normalise the filter so old & new records match consistently
+        query["club"] = canonical_club(club)
     if period == "weekly":
         cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
         query["createdAt"] = {"$gte": cutoff}

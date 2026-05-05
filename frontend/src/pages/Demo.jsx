@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactionGame from "@/games/ReactionGame";
 import DecisionGame from "@/games/DecisionGame";
 import Leaderboard from "@/components/Leaderboard";
+import ClubClaimModal from "@/components/ClubClaimModal";
 import { Link } from "react-router-dom";
 import { Activity, Brain, Trophy, ArrowRight } from "lucide-react";
 import { submitScore } from "@/services/api";
@@ -21,6 +22,10 @@ export default function Demo() {
     const [age, setAge] = useState("");
     const [reactionResult, setReactionResult] = useState(null);
     const [decisionResult, setDecisionResult] = useState(null);
+    const [isNewClub, setIsNewClub] = useState(false);
+    const [canonicalClub, setCanonicalClub] = useState("");
+    const [claimOpen, setClaimOpen] = useState(false);
+    const [claimShown, setClaimShown] = useState(false);
 
     const stepIdx = STEPS.findIndex((s) => s.key === step);
 
@@ -28,7 +33,7 @@ export default function Demo() {
         if (!name.trim() || !club.trim()) return;
         try {
             const parsedAge = age ? Number(age) : null;
-            await submitScore({
+            const res = await submitScore({
                 name: name.trim(),
                 club: club.trim(),
                 ...(parsedAge && parsedAge >= 6 && parsedAge <= 99 ? { age: parsedAge } : {}),
@@ -36,6 +41,8 @@ export default function Demo() {
                 score: payload.score,
                 reactionTime: payload.reactionTime ?? null,
             });
+            if (res?.club) setCanonicalClub(res.club);
+            if (res?.isNewClub) setIsNewClub(true);
             toast.success(
                 gameType === "reaction"
                     ? `Reaction saved (${Math.round(payload.reactionTime)}ms)`
@@ -54,6 +61,17 @@ export default function Demo() {
         setDecisionResult(result);
         submit("decision", result);
     };
+
+    // When we land on the leaderboard step with a new club, show the claim modal once.
+    useEffect(() => {
+        if (step === "leaderboard" && isNewClub && !claimShown) {
+            const t = setTimeout(() => {
+                setClaimOpen(true);
+                setClaimShown(true);
+            }, 900);
+            return () => clearTimeout(t);
+        }
+    }, [step, isNewClub, claimShown]);
 
     return (
         <div data-testid="demo-page">
@@ -319,6 +337,13 @@ export default function Demo() {
                     </div>
                 )}
             </section>
+
+            <ClubClaimModal
+                open={claimOpen}
+                club={canonicalClub || club.trim()}
+                playerName={name}
+                onClose={() => setClaimOpen(false)}
+            />
         </div>
     );
 }
