@@ -1,0 +1,37 @@
+{
+  "summary": "V1.6 end-to-end testing PASS. Backend: 17/17 pytest tests pass — scanning leaderboard sorted desc with Noah P. South London FC 100 pts at #1, club filter, weekly period, POST /score scanning returns 201 + canonical club + isNewClub flag, bogus gameType -> 422, reaction/decision/contact/club-claim regression all green. Frontend: /pricing renders 5 tiers with correct prices (£0/£19/£199/Contact/Contact), Team has 'Most Popular' ribbon, all required leaderboard-access feature strings present. /leaderboard shows the 3rd tab 'Scanning' which renders 15 seeded rows with '<n> pts' format and Noah P. at top. /demo intro hero says 'Reaction → Decision → Scanning → Leaderboard', stepper has 5 pills (Setup/Reaction/Decision/Scanning/Leaderboard), and 4 step cards (Reaction/Decision/Scanning/Rank). /games/scanning: 5-second visible countdown (data-testid='scanning-countdown-value') is visible and decrements (4 -> 2). Off-screen sentinel buttons 'scanning-option-A' work and the game completes 5 rounds; final summary renders correct/total format. /games/decision: canvas renders the pitch with 'CLICK AN ARROW ON THE PITCH TO CHOOSE' hint (i.e. A/B/C button row removed as expected), Coach's Note feedback overlay fires after clicking the .sr-only sentinel 'decision-option-A', scenario counter shows '1 / 4'. No console errors. TEST_* rows cleaned up; DB back to exactly 45 seed scores.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/score & POST /api/club-claim", "issue": "Pre-existing from iteration_3: slowapi rate limiter relies on a custom key_func that reads X-Forwarded-For — verify behind k8s ingress in production; in-memory store still resets on reload."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_playsharp_v16_scanning.py",
+    "/app/test_reports/pytest/iteration_5.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "core.py: load_dotenv before reading MONGO_URL/DB_NAME — good. GAME_TYPES kept in sync with ScoreCreate Literal in models/score.py — both define {reaction,decision,scanning}; consider sourcing one from the other to avoid drift.",
+    "routes/leaderboard.py: sort logic is correct (reaction ASC by reactionTime, decision/scanning DESC by score). Note: weekly filter uses createdAt $gte cutoff_iso compared as a string; this works because all stored createdAt are ISO 8601 UTC with Z/offset and lexicographic ordering matches chronological — but it's fragile. Recommend storing createdAt as a BSON Date and comparing against a datetime to make the index range query type-safe.",
+    "routes/score.py: client_canon length check uses canonical_club output but the original payload.club could be very long before normalisation. Move length check before canonicalisation if you want to reject early. Minor.",
+    "services/seed.py: random.randint(1,14) means weekly filter often returns 0 rows; consider seeding ~3 entries < 7 days old to demo the weekly toggle.",
+    "Demo.jsx: STEPS has 5 entries but the per-step UI says 'Step X / 4' (because Setup is implicit). Acceptable; just a copy nit.",
+    "ScanningGame.jsx + DecisionGame.jsx: confirm that the off-screen .sr-only sentinel buttons remain in DOM even when the Phaser canvas fails to initialise — they're the only automation hook. Good pattern, please keep.",
+    "Leaderboard.jsx: gameType state defaults from prop but doesn't sync to URL — sharing a /leaderboard?tab=scanning deep link is not possible. Nice-to-have."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_playsharp_v16_scanning.py"
+  ],
+  "success_rate": {"backend": "17/17 (100%)", "frontend": "5/5 V1.6 flows (100%) — pricing 5 tiers, scanning leaderboard tab, demo stepper+hero, scanning game countdown+sentinel+5 rounds, decision game canvas+sentinel"},
+  "seed_data_creation": "Created TEST_Scanner*/TEST_Decider* scores during UI flow and TEST_* score/contact/club-claim rows during pytest; all removed in cleanup. Mongo restored to exactly 45 seed scores (15 reaction + 15 decision + 15 scanning).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "V1.6 is green. For UI automation of Decision/Scanning games, always interact via the .sr-only sentinel buttons (data-testid='decision-option-A/B/C' and 'scanning-option-A/B/C') — DO NOT try pixel-click the Phaser canvas badges. Standalone /games/decision and /games/scanning require filling Player name / Age / Club / School and clicking 'Begin Drill' before the game starts (the Demo flow at /demo uses shared state and skips this). Backend pytest entrypoint: `python -m pytest /app/backend/tests/test_playsharp_v16_scanning.py -v`. The leaderboard 'weekly' filter sometimes returns 0 rows because seeded createdAt values are randomly placed 1-14 days back — that's not a bug, just an empty filter result.",
+  "rca of the issue": "n/a — no regressions found in V1.6."
+}
