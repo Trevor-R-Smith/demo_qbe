@@ -36,7 +36,18 @@ Build a fully working browser-based football cognitive training platform called 
 
 ## What's Implemented (2026-02 → 2026-05 — V1 → V1.5)
 
-### V1.5 changes (this iteration, 2026-05-05)
+### V1.6 changes (this iteration, 2026-05-12)
+- ✅ **Scanning drill (P0)** — new 3rd game type. 5 rounds of peripheral-awareness recall: pitch flashes for 5 seconds (visible countdown), then curtains and the player picks from 3 clickable on-pitch badges.
+- ✅ **Demo flow expanded to 4 games** — Reaction → Decision → Scanning → Leaderboard (5 stepper states). Football IQ composite now blends all three normalized 0–100.
+- ✅ **Pricing restructure** — Free £0 (personal leaderboard only), Individual £19 (global leaderboard), Team £199 (was £99, team leaderboard + everything in Individual), School Contact (global + school-wide), Academy Contact (global + academy-wide).
+- ✅ **Decision & Scanning games visual overhaul** —
+  - Player position labels (`ST`, `CB`, `LB`, etc.) sit BELOW each player on a dark pill for legibility against the pitch.
+  - The user's own player is highlighted in orange and labelled `YOU`.
+  - A/B/C button rows replaced with on-pitch clickable arrow-badges (Decision: through-ball / square pass / dribble loop / cross arc / cut-back, etc.; Scanning: spatial badges positioned in the recall zone).
+- ✅ **Backend scoring extended** — `gameType` now accepts `scanning`; leaderboard sorts scanning by score DESC. Seed populated with 15 curated scanning entries.
+- ✅ **Leaderboard component** — third tab `Scanning` added.
+
+### V1.5 changes
 - ✅ **Advisory rename (P0)** — Decision game scenario options are now flagged with `recommended: true` (was `correct: true`). All 4 scenarios updated; `|| o.correct` fallback removed from `DecisionGame.jsx`. `onComplete` payload now includes `matchesCoach` count.
 - ✅ **DecisionGamePage** standalone results now shows **"Aligned with coach"** (was "Correct") with `matchesCoach/total`.
 - ✅ **Backend refactor** — monolithic `server.py` (383 lines) split into `routes/` (5 routers), `models/` (3 modules), `services/` (clubs + seed), `core.py` (shared infra). `server.py` is now a 50-line thin entrypoint. Zero API contract changes — all endpoints identical.
