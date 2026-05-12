@@ -124,7 +124,7 @@ const SCENARIOS = [
                 recommended: true,
                 reason: "Classic 2v1. RB has bitten, CBs are holding shape — your full-back arrives with momentum into a gold-channel cross opportunity.",
                 arrow: {
-                    path: [{ x: 0.22, y: 0.45 }, { x: 0.18, y: 0.38 }, { x: 0.22, y: 0.30 }],
+                    path: [{ x: 0.22, y: 0.45 }, { x: 0.22, y: 0.30 }],
                     style: "solid",
                     badge: { x: 0.36, y: 0.42 },
                 },
