@@ -43,6 +43,7 @@ const SCANS = [
     {
         id: "teammates_ahead",
         title: "Teammates ahead of the ball",
+        bannerPosition: "bottom",
         setup: [
             { id: "you", kit: "home", x: 0.50, y: 0.60, label: "CM", hasBall: true },
             { id: "t1", kit: "home", x: 0.28, y: 0.40, label: "LM" },
@@ -67,6 +68,7 @@ const SCANS = [
     {
         id: "free_teammate_side",
         title: "Location of the unmarked teammate",
+        bannerPosition: "bottom",
         setup: [
             { id: "you", kit: "home", x: 0.50, y: 0.55, label: "CM", hasBall: true },
             { id: "tl", kit: "home", x: 0.22, y: 0.40, label: "LW" },
@@ -110,6 +112,7 @@ const SCANS = [
     {
         id: "defensive_gap",
         title: "Gap in the defensive line",
+        bannerPosition: "bottom",
         setup: [
             { id: "you", kit: "home", x: 0.50, y: 0.62, label: "CM", hasBall: true },
             { id: "t_st", kit: "home", x: 0.50, y: 0.44, label: "ST" },
@@ -505,11 +508,15 @@ export default function ScanningGame({ onComplete }) {
 
                 {/* Centered scan banner — title + giant countdown so the user
                     immediately sees what they're scanning for and how long
-                    they have. Visible only during the scan window. */}
+                    they have. Anchors to bottom for scans where YOU sits
+                    in the upper/middle band so the player isn't covered. */}
                 {phase === "scanning" && (
                     <div
                         data-testid="scanning-countdown"
-                        className="pointer-events-none absolute inset-x-0 top-12 flex flex-col items-center"
+                        className={[
+                            "pointer-events-none absolute inset-x-0 flex flex-col items-center",
+                            sc.bannerPosition === "bottom" ? "bottom-4" : "top-12",
+                        ].join(" ")}
                     >
                         <div className="mx-auto flex max-w-2xl flex-col items-center border border-white/20 bg-black/75 px-8 py-5 backdrop-blur-sm">
                             <p className="ps-label text-ps-red">
