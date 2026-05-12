@@ -37,7 +37,7 @@ export default function DecisionGamePage() {
             <p className="mt-3 max-w-xl text-sm text-white/60">
                 4 animated football scenarios — channel runs, wide overloads,
                 defensive shape, box arrivals. Watch the play unfold, then
-                pick A / B / C.
+                pick the arrow on the pitch that matches your call.
             </p>
 
             {!started && (
