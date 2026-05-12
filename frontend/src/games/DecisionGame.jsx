@@ -112,7 +112,7 @@ const SCENARIOS = [
         offside: { y: 0.36 },
         anim: [
             { id: "opp_fb", to: { x: 0.20, y: 0.44 }, duration: 1500 },
-            { id: "fb_overlap", to: { x: 0.22, y: 0.40 }, duration: 1700 },
+            { id: "fb_overlap", to: { x: 0.22, y: 0.30 }, duration: 1700 },
             { id: "ifw", to: { x: 0.40, y: 0.45 }, duration: 1600 },
         ],
         question: "Their right-back has committed. Your LB is overlapping into the gap.",
@@ -120,13 +120,13 @@ const SCENARIOS = [
             {
                 key: "A",
                 label: "Slip it inside the RB to your overlapping LB",
-                short: "Slip to overlap",
+                short: "Overlap pass",
                 recommended: true,
                 reason: "Classic 2v1. RB has bitten, CBs are holding shape — your full-back arrives with momentum into a gold-channel cross opportunity.",
                 arrow: {
-                    path: [{ x: 0.22, y: 0.45 }, { x: 0.20, y: 0.36 }, { x: 0.22, y: 0.28 }],
+                    path: [{ x: 0.22, y: 0.45 }, { x: 0.18, y: 0.38 }, { x: 0.22, y: 0.30 }],
                     style: "solid",
-                    badge: { x: 0.30, y: 0.36 },
+                    badge: { x: 0.36, y: 0.42 },
                 },
             },
             {
@@ -139,7 +139,7 @@ const SCENARIOS = [
                         { x: 0.22, y: 0.45 }, { x: 0.32, y: 0.30 }, { x: 0.42, y: 0.20 }, { x: 0.50, y: 0.18 },
                     ],
                     style: "solid",
-                    badge: { x: 0.40, y: 0.30 },
+                    badge: { x: 0.60, y: 0.22 },
                 },
             },
             {
@@ -150,7 +150,7 @@ const SCENARIOS = [
                 arrow: {
                     path: [{ x: 0.22, y: 0.45 }, { x: 0.36, y: 0.50 }, { x: 0.46, y: 0.48 }],
                     style: "solid",
-                    badge: { x: 0.42, y: 0.56 },
+                    badge: { x: 0.60, y: 0.58 },
                 },
             },
         ],
@@ -220,6 +220,7 @@ const SCENARIOS = [
         id: "winger_in_box",
         title: "Winger in the Box",
         subtitle: "Three runners attacking near-post, penalty spot, and far-post",
+        questionPosition: "bottom",
         setup: [
             { id: "you", kit: "home", x: 0.82, y: 0.18, label: "RW", hasBall: true },
             { id: "near", kit: "home", x: 0.42, y: 0.10, label: "NEAR" },
@@ -779,7 +780,10 @@ export default function DecisionGame({ onComplete }) {
                 {phase === "deciding" && (
                     <div
                         data-testid="decision-question"
-                        className="pointer-events-none absolute inset-x-0 top-12 px-6"
+                        className={[
+                            "pointer-events-none absolute inset-x-0 px-6",
+                            sc.questionPosition === "bottom" ? "bottom-4" : "top-12",
+                        ].join(" ")}
                     >
                         <div className="mx-auto max-w-3xl border border-white/15 bg-black/65 px-5 py-3 backdrop-blur-sm">
                             <p className="ps-label text-ps-red">Question</p>

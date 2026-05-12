@@ -61,7 +61,7 @@ const SCANS = [
             { key: "B", label: "3 teammates", short: "3 ahead", correct: true, badge: { x: 0.50, y: 0.50 } },
             { key: "C", label: "4 teammates", short: "4 ahead", badge: { x: 0.75, y: 0.50 } },
         ],
-        explain: "Three red shirts ahead of you (y < 0.60): LM, RM, ST. CB sits behind the ball and doesn't count.",
+        explain: "Three red shirts were ahead of you: LM, RM, ST. The CB sits behind the ball and doesn't count.",
     },
     {
         id: "free_teammate_side",
@@ -82,7 +82,7 @@ const SCANS = [
             { key: "B", label: "Centre striker", short: "Centre striker", badge: { x: 0.50, y: 0.36 } },
             { key: "C", label: "Right wing", short: "Right wing", correct: true, badge: { x: 0.78, y: 0.42 } },
         ],
-        explain: "The right winger had daylight — the nearest defender (LCB) was two zones away at x≈0.58. Both left-wing and striker had a shadow on them.",
+        explain: "The right winger had daylight — the nearest defender (LCB) was two zones away. Both left-wing and striker had a shadow on them.",
     },
     {
         id: "overload_side",
@@ -123,7 +123,7 @@ const SCANS = [
             { key: "B", label: "Centre-right (between LCB & RB)", short: "Centre-right gap", correct: true, badge: { x: 0.60, y: 0.50 } },
             { key: "C", label: "Right (outside RB)", short: "Outside RB", badge: { x: 0.88, y: 0.50 } },
         ],
-        explain: "The RCB was missing — a huge corridor at x≈0.60 between LCB and RB. That's your through-ball lane.",
+        explain: "The RCB was missing — a huge corridor between LCB and RB. That's your through-ball lane.",
     },
     {
         id: "press_outlet",
@@ -309,17 +309,21 @@ export default function ScanningGame({ onComplete }) {
                     drawPitch(this);
 
                     const s = SCANS[scanIndex];
-                    this.add.text(20, 14, s.title, {
-                        fontFamily: "'Sofia Sans Extra Condensed', 'Barlow Condensed', sans-serif",
-                        fontSize: "22px",
-                        fontStyle: "700",
-                        color: "#FFFFFF",
-                    });
-                    this.add.text(20, 42, `SCAN ${scanIndex + 1} / ${SCANS.length}`, {
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: "10px",
-                        color: "#FFFFFF66",
-                    });
+                    // Title + counter live in a centered React overlay during the
+                    // scan phase, and as a small top-left tag during recall.
+                    if (mode === "recall") {
+                        this.add.text(20, 14, s.title, {
+                            fontFamily: "'Sofia Sans Extra Condensed', 'Barlow Condensed', sans-serif",
+                            fontSize: "22px",
+                            fontStyle: "700",
+                            color: "#FFFFFF",
+                        });
+                        this.add.text(20, 42, `SCAN ${scanIndex + 1} / ${SCANS.length}`, {
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: "10px",
+                            color: "#FFFFFF66",
+                        });
+                    }
 
                     if (mode === "scan") {
                         s.setup.forEach((p) => placePlayer(this, p, w, h));
@@ -498,25 +502,34 @@ export default function ScanningGame({ onComplete }) {
                     </span>
                 </div>
 
-                {/* 5-second countdown — visible only during the scan window. */}
+                {/* Centered scan banner — title + giant countdown so the user
+                    immediately sees what they're scanning for and how long
+                    they have. Visible only during the scan window. */}
                 {phase === "scanning" && (
                     <div
                         data-testid="scanning-countdown"
-                        className="pointer-events-none absolute right-4 top-12 flex flex-col items-end"
+                        className="pointer-events-none absolute inset-x-0 top-12 flex flex-col items-center"
                     >
-                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/55">
-                            Scan window
-                        </span>
-                        <span
-                            data-testid="scanning-countdown-value"
-                            className="font-display text-6xl font-black tabular-nums leading-none text-ps-red"
-                            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6)" }}
-                        >
-                            {countdown}
-                        </span>
-                        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
-                            seconds left
-                        </span>
+                        <div className="mx-auto flex max-w-2xl flex-col items-center border border-white/20 bg-black/75 px-8 py-5 backdrop-blur-sm">
+                            <p className="ps-label text-ps-red">
+                                Scan {idx + 1} / {SCANS.length} · Memorise the pitch
+                            </p>
+                            <p className="mt-2 text-center font-display text-2xl font-black uppercase leading-tight text-white md:text-3xl">
+                                {sc.title}
+                            </p>
+                            <div className="mt-3 flex items-baseline gap-3">
+                                <span
+                                    data-testid="scanning-countdown-value"
+                                    className="font-display text-7xl font-black tabular-nums leading-none text-ps-red"
+                                    style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6)" }}
+                                >
+                                    {countdown}
+                                </span>
+                                <span className="font-mono text-xs uppercase tracking-[0.22em] text-white/60">
+                                    seconds left
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 )}
 
